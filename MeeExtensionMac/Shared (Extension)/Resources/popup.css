@@ -1,0 +1,30 @@
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  min-width: 250px;
+}
+.content {
+  width: 100%;
+  padding: 10px;
+
+  font-family: system-ui;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-items: center;
+}
+
+#domain-block {
+  color: red;
+}
+
+#current-domain {
+  font-size: large;
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Dark Mode styles go here. */
+}
