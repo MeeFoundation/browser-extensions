@@ -29,11 +29,7 @@
   "permissions": [
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess",
-    "webNavigation",
-    "storage",
     "activeTab",
-    "cookies",
-    "tabs",
     "scripting"
   ],
   "declarative_net_request": {
@@ -45,9 +41,7 @@
       }
     ]
   },
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
   },
@@ -58,13 +52,19 @@
       "run_at": "document_start"
     }
   ],
-  "web_accessible_resources": [{
-	  "resources": ["gpc-dom.js"],
-	  "matches": ["<all_urls>"]
-	}],
+  "web_accessible_resources": [
+    {
+      "resources": ["gpc-dom.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'",
     "sandbox": "sandbox allow-scripts; script-src 'self' 'unsafe-eval'; object-src 'self'"
   },
-  "minimum_safari_version": "15"
+  "browser_specific_settings": {
+    "safari": {
+      "strict_min_version": "16.4"
+    }
+  }
 }

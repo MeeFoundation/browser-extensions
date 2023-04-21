@@ -49,6 +49,8 @@
 		EC62BC1F29D47A5700E3C9A5 /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = EC62BBCF29D47A5600E3C9A5 /* popup.css */; };
 		EC62BC2029D47A5700E3C9A5 /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = EC62BBD029D47A5600E3C9A5 /* popup.js */; };
 		EC62BC2129D47A5700E3C9A5 /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = EC62BBD029D47A5600E3C9A5 /* popup.js */; };
+		EC73BF1B29F2805B00D9DB95 /* add-gpc-dom.js in Resources */ = {isa = PBXBuildFile; fileRef = EC73BF1A29F2805B00D9DB95 /* add-gpc-dom.js */; };
+		EC73BF1C29F2805B00D9DB95 /* add-gpc-dom.js in Resources */ = {isa = PBXBuildFile; fileRef = EC73BF1A29F2805B00D9DB95 /* add-gpc-dom.js */; };
 		ECB7F72629E54C3F00AB75F0 /* rules.json in Resources */ = {isa = PBXBuildFile; fileRef = ECB7F72529E54C3E00AB75F0 /* rules.json */; };
 		ECB7F72729E54C3F00AB75F0 /* rules.json in Resources */ = {isa = PBXBuildFile; fileRef = ECB7F72529E54C3E00AB75F0 /* rules.json */; };
 /* End PBXBuildFile section */
@@ -127,6 +129,7 @@
 		EC62BBFD29D47A5700E3C9A5 /* MeeExtension Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "MeeExtension Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		EC62BC0229D47A5700E3C9A5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EC62BC0329D47A5700E3C9A5 /* MeeExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MeeExtension.entitlements; sourceTree = "<group>"; };
+		EC73BF1A29F2805B00D9DB95 /* add-gpc-dom.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "add-gpc-dom.js"; sourceTree = "<group>"; };
 		ECB7F72529E54C3E00AB75F0 /* rules.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = rules.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -208,6 +211,7 @@
 		EC62BBC829D47A5600E3C9A5 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				EC73BF1A29F2805B00D9DB95 /* add-gpc-dom.js */,
 				ECB7F72529E54C3E00AB75F0 /* rules.json */,
 				EC01661029E02B50006C57C3 /* gpc-dom.js */,
 				EC62BBC929D47A5600E3C9A5 /* _locales */,
@@ -433,6 +437,7 @@
 				EC62BC1429D47A5700E3C9A5 /* images in Resources */,
 				EC62BC1629D47A5700E3C9A5 /* manifest.json in Resources */,
 				EC62BC1229D47A5700E3C9A5 /* _locales in Resources */,
+				EC73BF1B29F2805B00D9DB95 /* add-gpc-dom.js in Resources */,
 				ECB7F72629E54C3F00AB75F0 /* rules.json in Resources */,
 				EC62BC1A29D47A5700E3C9A5 /* content.js in Resources */,
 				EC62BC2029D47A5700E3C9A5 /* popup.js in Resources */,
@@ -450,6 +455,7 @@
 				EC62BC1529D47A5700E3C9A5 /* images in Resources */,
 				EC62BC1729D47A5700E3C9A5 /* manifest.json in Resources */,
 				EC62BC1329D47A5700E3C9A5 /* _locales in Resources */,
+				EC73BF1C29F2805B00D9DB95 /* add-gpc-dom.js in Resources */,
 				ECB7F72729E54C3F00AB75F0 /* rules.json in Resources */,
 				EC62BC1B29D47A5700E3C9A5 /* content.js in Resources */,
 				EC62BC2129D47A5700E3C9A5 /* popup.js in Resources */,
