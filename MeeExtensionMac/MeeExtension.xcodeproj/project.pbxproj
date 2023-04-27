@@ -7,10 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		EC01661129E02B50006C57C3 /* gpc-dom.js in Resources */ = {isa = PBXBuildFile; fileRef = EC01661029E02B50006C57C3 /* gpc-dom.js */; };
-		EC01661229E02B50006C57C3 /* gpc-dom.js in Resources */ = {isa = PBXBuildFile; fileRef = EC01661029E02B50006C57C3 /* gpc-dom.js */; };
-		EC01661329E02B50006C57C3 /* gpc-dom.js in Resources */ = {isa = PBXBuildFile; fileRef = EC01661029E02B50006C57C3 /* gpc-dom.js */; };
-		EC01661429E02B50006C57C3 /* gpc-dom.js in Resources */ = {isa = PBXBuildFile; fileRef = EC01661029E02B50006C57C3 /* gpc-dom.js */; };
+		EC26520D29FA675900BB9B19 /* gpc-scripts in Resources */ = {isa = PBXBuildFile; fileRef = EC26520C29FA675900BB9B19 /* gpc-scripts */; };
+		EC26520E29FA675900BB9B19 /* gpc-scripts in Resources */ = {isa = PBXBuildFile; fileRef = EC26520C29FA675900BB9B19 /* gpc-scripts */; };
 		EC62BBD929D47A5700E3C9A5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC62BBD829D47A5700E3C9A5 /* AppDelegate.swift */; };
 		EC62BBDB29D47A5700E3C9A5 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC62BBDA29D47A5700E3C9A5 /* SceneDelegate.swift */; };
 		EC62BBDE29D47A5700E3C9A5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EC62BBDC29D47A5700E3C9A5 /* LaunchScreen.storyboard */; };
@@ -45,12 +43,8 @@
 		EC62BC1B29D47A5700E3C9A5 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = EC62BBCD29D47A5600E3C9A5 /* content.js */; };
 		EC62BC1C29D47A5700E3C9A5 /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = EC62BBCE29D47A5600E3C9A5 /* popup.html */; };
 		EC62BC1D29D47A5700E3C9A5 /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = EC62BBCE29D47A5600E3C9A5 /* popup.html */; };
-		EC62BC1E29D47A5700E3C9A5 /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = EC62BBCF29D47A5600E3C9A5 /* popup.css */; };
-		EC62BC1F29D47A5700E3C9A5 /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = EC62BBCF29D47A5600E3C9A5 /* popup.css */; };
 		EC62BC2029D47A5700E3C9A5 /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = EC62BBD029D47A5600E3C9A5 /* popup.js */; };
 		EC62BC2129D47A5700E3C9A5 /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = EC62BBD029D47A5600E3C9A5 /* popup.js */; };
-		EC73BF1B29F2805B00D9DB95 /* add-gpc-dom.js in Resources */ = {isa = PBXBuildFile; fileRef = EC73BF1A29F2805B00D9DB95 /* add-gpc-dom.js */; };
-		EC73BF1C29F2805B00D9DB95 /* add-gpc-dom.js in Resources */ = {isa = PBXBuildFile; fileRef = EC73BF1A29F2805B00D9DB95 /* add-gpc-dom.js */; };
 		ECB7F72629E54C3F00AB75F0 /* rules.json in Resources */ = {isa = PBXBuildFile; fileRef = ECB7F72529E54C3E00AB75F0 /* rules.json */; };
 		ECB7F72729E54C3F00AB75F0 /* rules.json in Resources */ = {isa = PBXBuildFile; fileRef = ECB7F72529E54C3E00AB75F0 /* rules.json */; };
 /* End PBXBuildFile section */
@@ -98,7 +92,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		EC01661029E02B50006C57C3 /* gpc-dom.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "gpc-dom.js"; sourceTree = "<group>"; };
+		EC26520C29FA675900BB9B19 /* gpc-scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "gpc-scripts"; sourceTree = "<group>"; };
 		EC62BBC029D47A5500E3C9A5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = ../Base.lproj/Main.html; sourceTree = "<group>"; };
 		EC62BBC129D47A5500E3C9A5 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		EC62BBC229D47A5500E3C9A5 /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
@@ -112,7 +106,6 @@
 		EC62BBCC29D47A5600E3C9A5 /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = background.js; sourceTree = "<group>"; };
 		EC62BBCD29D47A5600E3C9A5 /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = content.js; sourceTree = "<group>"; };
 		EC62BBCE29D47A5600E3C9A5 /* popup.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = popup.html; sourceTree = "<group>"; };
-		EC62BBCF29D47A5600E3C9A5 /* popup.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = popup.css; sourceTree = "<group>"; };
 		EC62BBD029D47A5600E3C9A5 /* popup.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = popup.js; sourceTree = "<group>"; };
 		EC62BBD529D47A5700E3C9A5 /* MeeExtension.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeeExtension.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EC62BBD829D47A5700E3C9A5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -129,7 +122,6 @@
 		EC62BBFD29D47A5700E3C9A5 /* MeeExtension Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "MeeExtension Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		EC62BC0229D47A5700E3C9A5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EC62BC0329D47A5700E3C9A5 /* MeeExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MeeExtension.entitlements; sourceTree = "<group>"; };
-		EC73BF1A29F2805B00D9DB95 /* add-gpc-dom.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "add-gpc-dom.js"; sourceTree = "<group>"; };
 		ECB7F72529E54C3E00AB75F0 /* rules.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = rules.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -211,16 +203,14 @@
 		EC62BBC829D47A5600E3C9A5 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				EC73BF1A29F2805B00D9DB95 /* add-gpc-dom.js */,
+				EC26520C29FA675900BB9B19 /* gpc-scripts */,
 				ECB7F72529E54C3E00AB75F0 /* rules.json */,
-				EC01661029E02B50006C57C3 /* gpc-dom.js */,
 				EC62BBC929D47A5600E3C9A5 /* _locales */,
 				EC62BBCA29D47A5600E3C9A5 /* images */,
 				EC62BBCB29D47A5600E3C9A5 /* manifest.json */,
 				EC62BBCC29D47A5600E3C9A5 /* background.js */,
 				EC62BBCD29D47A5600E3C9A5 /* content.js */,
 				EC62BBCE29D47A5600E3C9A5 /* popup.html */,
-				EC62BBCF29D47A5600E3C9A5 /* popup.css */,
 				EC62BBD029D47A5600E3C9A5 /* popup.js */,
 			);
 			path = Resources;
@@ -405,7 +395,6 @@
 				EC62BBDE29D47A5700E3C9A5 /* LaunchScreen.storyboard in Resources */,
 				EC62BC0429D47A5700E3C9A5 /* Main.html in Resources */,
 				EC62BC0A29D47A5700E3C9A5 /* Script.js in Resources */,
-				EC01661129E02B50006C57C3 /* gpc-dom.js in Resources */,
 				EC62BC0E29D47A5700E3C9A5 /* Assets.xcassets in Resources */,
 				EC62BBE129D47A5700E3C9A5 /* Main.storyboard in Resources */,
 				EC62BC0829D47A5700E3C9A5 /* Style.css in Resources */,
@@ -416,7 +405,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EC01661229E02B50006C57C3 /* gpc-dom.js in Resources */,
 				EC62BC0729D47A5700E3C9A5 /* Icon.png in Resources */,
 				EC62BC0929D47A5700E3C9A5 /* Style.css in Resources */,
 				EC62BBED29D47A5700E3C9A5 /* Main.storyboard in Resources */,
@@ -430,14 +418,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EC01661329E02B50006C57C3 /* gpc-dom.js in Resources */,
 				EC62BC1829D47A5700E3C9A5 /* background.js in Resources */,
-				EC62BC1E29D47A5700E3C9A5 /* popup.css in Resources */,
 				EC62BC1C29D47A5700E3C9A5 /* popup.html in Resources */,
 				EC62BC1429D47A5700E3C9A5 /* images in Resources */,
 				EC62BC1629D47A5700E3C9A5 /* manifest.json in Resources */,
+				EC26520D29FA675900BB9B19 /* gpc-scripts in Resources */,
 				EC62BC1229D47A5700E3C9A5 /* _locales in Resources */,
-				EC73BF1B29F2805B00D9DB95 /* add-gpc-dom.js in Resources */,
 				ECB7F72629E54C3F00AB75F0 /* rules.json in Resources */,
 				EC62BC1A29D47A5700E3C9A5 /* content.js in Resources */,
 				EC62BC2029D47A5700E3C9A5 /* popup.js in Resources */,
@@ -448,14 +434,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EC01661429E02B50006C57C3 /* gpc-dom.js in Resources */,
 				EC62BC1929D47A5700E3C9A5 /* background.js in Resources */,
-				EC62BC1F29D47A5700E3C9A5 /* popup.css in Resources */,
 				EC62BC1D29D47A5700E3C9A5 /* popup.html in Resources */,
 				EC62BC1529D47A5700E3C9A5 /* images in Resources */,
 				EC62BC1729D47A5700E3C9A5 /* manifest.json in Resources */,
+				EC26520E29FA675900BB9B19 /* gpc-scripts in Resources */,
 				EC62BC1329D47A5700E3C9A5 /* _locales in Resources */,
-				EC73BF1C29F2805B00D9DB95 /* add-gpc-dom.js in Resources */,
 				ECB7F72729E54C3F00AB75F0 /* rules.json in Resources */,
 				EC62BC1B29D47A5700E3C9A5 /* content.js in Resources */,
 				EC62BC2129D47A5700E3C9A5 /* popup.js in Resources */,
