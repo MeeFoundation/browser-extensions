@@ -45,6 +45,8 @@
 		EC62BC1D29D47A5700E3C9A5 /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = EC62BBCE29D47A5600E3C9A5 /* popup.html */; };
 		EC62BC2029D47A5700E3C9A5 /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = EC62BBD029D47A5600E3C9A5 /* popup.js */; };
 		EC62BC2129D47A5700E3C9A5 /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = EC62BBD029D47A5600E3C9A5 /* popup.js */; };
+		EC8C39C32A010306000FD510 /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = EC8C39C22A010306000FD510 /* popup.css */; };
+		EC8C39C42A010306000FD510 /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = EC8C39C22A010306000FD510 /* popup.css */; };
 		ECB7F72629E54C3F00AB75F0 /* rules.json in Resources */ = {isa = PBXBuildFile; fileRef = ECB7F72529E54C3E00AB75F0 /* rules.json */; };
 		ECB7F72729E54C3F00AB75F0 /* rules.json in Resources */ = {isa = PBXBuildFile; fileRef = ECB7F72529E54C3E00AB75F0 /* rules.json */; };
 /* End PBXBuildFile section */
@@ -122,6 +124,7 @@
 		EC62BBFD29D47A5700E3C9A5 /* MeeExtension Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "MeeExtension Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		EC62BC0229D47A5700E3C9A5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EC62BC0329D47A5700E3C9A5 /* MeeExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MeeExtension.entitlements; sourceTree = "<group>"; };
+		EC8C39C22A010306000FD510 /* popup.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = popup.css; sourceTree = "<group>"; };
 		ECB7F72529E54C3E00AB75F0 /* rules.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = rules.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -203,6 +206,7 @@
 		EC62BBC829D47A5600E3C9A5 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				EC8C39C22A010306000FD510 /* popup.css */,
 				EC26520C29FA675900BB9B19 /* gpc-scripts */,
 				ECB7F72529E54C3E00AB75F0 /* rules.json */,
 				EC62BBC929D47A5600E3C9A5 /* _locales */,
@@ -418,6 +422,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EC8C39C32A010306000FD510 /* popup.css in Resources */,
 				EC62BC1829D47A5700E3C9A5 /* background.js in Resources */,
 				EC62BC1C29D47A5700E3C9A5 /* popup.html in Resources */,
 				EC62BC1429D47A5700E3C9A5 /* images in Resources */,
@@ -434,6 +439,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EC8C39C42A010306000FD510 /* popup.css in Resources */,
 				EC62BC1929D47A5700E3C9A5 /* background.js in Resources */,
 				EC62BC1D29D47A5700E3C9A5 /* popup.html in Resources */,
 				EC62BC1529D47A5700E3C9A5 /* images in Resources */,

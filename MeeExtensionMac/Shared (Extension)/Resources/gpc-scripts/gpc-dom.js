@@ -1,1 +1,18 @@
-function setDomSignal(){try{const e='\n      Object.defineProperty(Navigator.prototype, "globalPrivacyControl", {\n        get: () => true,\n        configurable: true,\n        enumerable: true\n      });\n      document.currentScript.parentElement.removeChild(document.currentScript);\n    ',t=document.createElement("script");t.innerHTML=e,document.documentElement.prepend(t)}catch(e){console.error(`Failed to set DOM signal: ${e}`)}}setDomSignal();
+function setDomSignal() {
+  try {
+    const script_content = `
+      Object.defineProperty(Navigator.prototype, "globalPrivacyControl", {
+        get: () => true,
+        configurable: true,
+        enumerable: true
+      });
+      document.currentScript.parentElement.removeChild(document.currentScript);
+    `;
+    const script = document.createElement("script");
+    script.innerHTML = script_content;
+    document.documentElement.prepend(script);
+  } catch (err) {
+    console.error(`Failed to set DOM signal: ${err}`);
+  }
+}
+setDomSignal();

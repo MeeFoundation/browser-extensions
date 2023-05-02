@@ -1,1 +1,10 @@
-function injectStaticScript(){const t=document.createElement("script");t.src=chrome.runtime.getURL("gpc-scripts/gpc-dom.js"),t.online=function(){this.remove()},document.documentElement.prepend(t)}injectStaticScript();
+function injectStaticScript() {
+  const script = document.createElement("script");
+  (script.src = chrome.runtime.getURL("gpc-scripts/gpc-dom.js")),
+    (script.online = function () {
+      this.remove();
+    }),
+    document.documentElement.prepend(script);
+}
+console.log('injectStaticScript')
+injectStaticScript();

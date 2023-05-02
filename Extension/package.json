@@ -7,25 +7,14 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run build:safari && npm run build:chrome",
-    "build:safari": "webpack --mode production --env safari",
-    "build:chrome": "webpack --mode production --env chrome"
+    "build:safari": "APP_BROWSER=safari vite build && APP_FILE=popup APP_BROWSER=safari vite build",
+    "build:chrome": "vite build && APP_FILE=popup vite build"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@babel/core": "^7.21.4",
-    "@babel/preset-env": "^7.21.4",
-    "babel-loader": "^9.1.2",
-    "clean-webpack-plugin": "^4.0.0",
-    "copy-webpack-plugin": "^11.0.0",
-    "css-loader": "^6.7.3",
-    "html-webpack-plugin": "^5.5.1",
-    "string-replace-loader": "^3.1.0",
-    "style-loader": "^3.3.2",
-    "webpack": "^5.80.0",
-    "webpack-cli": "^5.0.2"
-  },
-  "dependencies": {
-    "psl": "^1.9.0"
+    "terser": "^5.17.1",
+    "vite": "^4.3.3",
+    "vite-plugin-static-copy": "^0.14.0"
   }
 }

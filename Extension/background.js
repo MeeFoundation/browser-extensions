@@ -1,5 +1,9 @@
-import psl from "psl";
-import {initDB, addRowToDB, getDisableDomains } from "./store.js";
+import {
+  initDB,
+  addRowToDB,
+  getDisableDomains,
+  getDomainData,
+} from "./store.js";
 
 initDB();
 
@@ -75,8 +79,7 @@ async function addRulesForDisabledDomains() {
 function afterDownloadWellknown(message, sender) {
   let tabID = sender.tab.id;
   let url = new URL(sender.origin);
-  let parsed = psl.parse(url.hostname);
-  let domain = parsed.domain;
+  let domain = url.hostname.replace("www.", "");
   let wellknown = [];
 
   wellknown[tabID] = message.data;
@@ -108,6 +111,28 @@ function afterDownloadWellknown(message, sender) {
   });
 }
 
+async function changeExtensionEnabled() {
+  await deleteAllDynamicRules();
+  const extensionData = await getDomainData("meeExtension");
+  const enabledExtension = !extensionData || extensionData.enabled;
+
+  if (!enabledExtension) {
+    chrome.scripting.updateContentScripts([
+      {
+        id: "1",
+        matches: ["https://example.com/"],
+        excludeMatches: [],
+        js: ["gpc-scripts/add-gpc-dom.js"],
+        runAt: "document_start",
+      },
+    ]);
+
+    await addDynamicRule(1, "*");
+  } else {
+    await addRulesForDisabledDomains();
+  }
+}
+
 async function onMessageHandlerAsync(message, sender, sendResponse) {
   switch (message.msg) {
     case "DOWNLOAD_WELLKNOWN": {
@@ -117,6 +142,10 @@ async function onMessageHandlerAsync(message, sender, sendResponse) {
     case "UPDATE_SELECTOR": {
       await deleteAllDynamicRules();
       await addRulesForDisabledDomains();
+      break;
+    }
+    case "UPDATE_ENABLED": {
+      await changeExtensionEnabled();
       break;
     }
   }
@@ -135,6 +164,22 @@ chrome.runtime.onInstalled.addListener(async function (details) {
       runAt: "document_start",
     },
   ]);
+  const extensionData = await getDomainData("meeExtension");
+  const enabledExtension = !extensionData || extensionData.enabled;
 
-  await addRulesForDisabledDomains();
+  if (!enabledExtension) {
+    chrome.scripting.updateContentScripts([
+      {
+        id: "1",
+        matches: ["https://example.com/"],
+        excludeMatches: [],
+        js: ["gpc-scripts/add-gpc-dom.js"],
+        runAt: "document_start",
+      },
+    ]);
+
+    await addDynamicRule(1, "*");
+  } else {
+    await addRulesForDisabledDomains();
+  }
 });

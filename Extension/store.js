@@ -1,6 +1,5 @@
-
 export function openDB() {
-  return indexedDB.open("MeeExtensionDB", 6);
+  return indexedDB.open("MeeExtensionDB", 7);
 }
 
 export async function initDB() {
@@ -16,7 +15,7 @@ export async function initDB() {
   };
 }
 
-export function addRowToDB(data) {
+export async function addRowToDB(data) {
   const request = openDB();
 
   request.onsuccess = function (event) {

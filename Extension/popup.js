@@ -1,9 +1,4 @@
-import "./popup.css";
-import psl from "psl";
 import { getDomainData, changeEnableDomain } from "./store.js";
-
-let parsedDomain;
-let enabled = false;
 
 function getCurrentParsedDomain() {
   return new Promise((resolve, reject) => {
@@ -11,8 +6,7 @@ function getCurrentParsedDomain() {
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         let tab = tabs[0];
         let url = new URL(tab.url);
-        let parsed = psl.parse(url.hostname);
-        let currentUrl = parsed.domain;
+        let currentUrl = url.hostname.replace("www.", "");
         resolve(currentUrl);
       });
     } catch (e) {
@@ -33,12 +27,28 @@ function getEnabled(domainData, wellknownData = null) {
 
 async function checkDomain(parsedDomain, wellknownData = null) {
   const domainData = await getDomainData(parsedDomain);
-  enabled = getEnabled(domainData, wellknownData);
-
-  document.getElementById("slider").checked = enabled;
+  const enabled = getEnabled(domainData, wellknownData);
+  const enabledExtension = isExtensionEnabled();
+  if (!enabledExtension) {
+  }
+  document.getElementById("slider-item").checked = enabled;
 }
 
-chrome.runtime.onMessage.addListener(function (message, _, __) {
+async function isExtensionEnabled() {
+  const extensionData = await getDomainData("meeExtension");
+  return !extensionData || extensionData.enabled;
+}
+
+async function checkEnabledExtension() {
+  const enabledExtension = await isExtensionEnabled();
+  document.getElementById("slider").checked = enabledExtension;
+  document.getElementById("domain-container").style.display = enabledExtension
+    ? "flex"
+    : "none";
+}
+
+chrome.runtime.onMessage.addListener(async function (message, _, __) {
+  const parsedDomain = await getCurrentParsedDomain();
   if (message.msg === "SEND_WELLKNOWN_TO_POPUP") {
     let { domain, wellknownData } = message.data;
 
@@ -49,7 +59,7 @@ chrome.runtime.onMessage.addListener(function (message, _, __) {
 });
 
 document.addEventListener("DOMContentLoaded", async (event) => {
-  parsedDomain = await getCurrentParsedDomain();
+  const parsedDomain = await getCurrentParsedDomain();
   document.getElementById("current-domain").innerHTML = parsedDomain
     ? parsedDomain
     : "Undefined";
@@ -60,21 +70,34 @@ document.addEventListener("DOMContentLoaded", async (event) => {
   });
 
   await checkDomain(parsedDomain);
+  await checkEnabledExtension();
 });
 
-document.getElementById("slider").addEventListener("click", async (event) => {
-  event.preventDefault();
-  event.stopPropagation();
-  if (!parsedDomain) {
-    parsedDomain = await getCurrentParsedDomain();
-  }
+document
+  .getElementById("slider-item")
+  .addEventListener("click", async (event) => {
+    const parsedDomain = await getCurrentParsedDomain();
 
-  const update_result = await changeEnableDomain(parsedDomain);
+    const update_result = await changeEnableDomain(parsedDomain);
+
+    if (update_result) {
+      chrome.runtime.sendMessage({
+        msg: "UPDATE_SELECTOR",
+      });
+      checkDomain(parsedDomain);
+    }
+  });
+
+document.getElementById("slider").addEventListener("click", async (event) => {
+  const parsedDomain = await getCurrentParsedDomain();
+  const update_result = await changeEnableDomain("meeExtension");
 
   if (update_result) {
     chrome.runtime.sendMessage({
-      msg: "UPDATE_SELECTOR",
+      msg: "UPDATE_ENABLED",
     });
     checkDomain(parsedDomain);
   }
+
+  await checkEnabledExtension();
 });
