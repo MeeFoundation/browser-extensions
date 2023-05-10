@@ -2,7 +2,7 @@ export function openDB() {
   return indexedDB.open("MeeExtensionDB", 7);
 }
 
-export async function initDB() {
+export function initDB() {
   const request = openDB();
 
   request.onupgradeneeded = function (event) {
@@ -15,7 +15,7 @@ export async function initDB() {
   };
 }
 
-export async function addRowToDB(data) {
+export function addRowToDB(data) {
   const request = openDB();
 
   request.onsuccess = function (event) {
@@ -46,8 +46,8 @@ export async function addRowToDB(data) {
   };
 }
 
-export async function getDisableDomains() {
-  const promise = new Promise((resolve, reject) => {
+export function getDisableDomains() {
+  return new Promise((resolve, reject) => {
     const domains = [];
     const request = openDB();
 
@@ -76,14 +76,10 @@ export async function getDisableDomains() {
       db.close();
     };
   });
-
-  return await promise.then((domains) => {
-    return domains;
-  });
 }
 
 export async function getDomainData(parsedDomain) {
-  const promise = new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     const request = openDB();
 
     request.onerror = (event) => {
@@ -105,14 +101,10 @@ export async function getDomainData(parsedDomain) {
       db.close();
     };
   });
-
-  return await promise.then((result) => {
-    return result;
-  });
 }
 
 export async function changeEnableDomain(parsedDomain) {
-  const promise = new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     const request = openDB();
     request.onerror = (event) => {
       reject();
@@ -147,13 +139,5 @@ export async function changeEnableDomain(parsedDomain) {
       };
     };
   });
-
-  return await promise
-    .then((result) => {
-      return result;
-    })
-    .catch(() => {
-      return false;
-    });
 }
 

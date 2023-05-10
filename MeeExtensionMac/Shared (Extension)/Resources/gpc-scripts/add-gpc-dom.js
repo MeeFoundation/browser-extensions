@@ -6,5 +6,5 @@ function injectStaticScript() {
     }),
     document.documentElement.prepend(script);
 }
-console.log('injectStaticScript')
+
 injectStaticScript();
