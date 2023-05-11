@@ -21,3 +21,18 @@
 
 ## store.js
   - Functionality for connecting and fetching data from indexedDB
+
+# Links for tests
+  - [https://globalprivacycontrol.org/](https://globalprivacycontrol.org/)
+  - [https://global-privacy-control.glitch.me/](https://global-privacy-control.glitch.me/)
+
+# How to open an extension in Google Chrome
+  - Run build in `Extension` directory
+  ```sh
+  npm run build
+  ```
+
+  - Open [chrome://extensions/](chrome://extensions/)
+  - Click on `Load unpacked`
+  - Select the `Extension/dist` directory in the file manager
+

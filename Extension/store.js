@@ -19,9 +19,9 @@ export function addRowToDB(data) {
   const request = openDB();
 
   request.onsuccess = function (event) {
-    let db = event.target.result;
-    var transaction = db.transaction(["domains"], "readwrite");
-    var objectStore = transaction.objectStore("domains");
+    const db = event.target.result;
+    const transaction = db.transaction(["domains"], "readwrite");
+    const objectStore = transaction.objectStore("domains");
 
     const request_get = objectStore.get(data.domain);
 
@@ -56,9 +56,9 @@ export function getDisableDomains() {
     };
 
     request.onsuccess = function (event) {
-      let db = event.target.result;
-      var transaction = db.transaction(["domains"], "readwrite");
-      var objectStore = transaction.objectStore("domains");
+      const db = event.target.result;
+      const transaction = db.transaction(["domains"], "readwrite");
+      const objectStore = transaction.objectStore("domains");
 
       objectStore.openCursor().onsuccess = (event) => {
         const cursor = event.target.result;
@@ -86,9 +86,9 @@ export async function getDomainData(parsedDomain) {
       reject();
     };
     request.onsuccess = function (event) {
-      let db = event.target.result;
-      var transaction = db.transaction(["domains"], "readwrite");
-      var objectStore = transaction.objectStore("domains");
+      const db = event.target.result;
+      const transaction = db.transaction(["domains"], "readwrite");
+      const objectStore = transaction.objectStore("domains");
 
       const request_get = objectStore.get(parsedDomain);
       request_get.onerror = (event) => {
@@ -110,9 +110,9 @@ export async function changeEnableDomain(parsedDomain) {
       reject();
     };
     request.onsuccess = function (event) {
-      let db = event.target.result;
-      var transaction = db.transaction(["domains"], "readwrite");
-      var objectStore = transaction.objectStore("domains");
+      const db = event.target.result;
+      const transaction = db.transaction(["domains"], "readwrite");
+      const objectStore = transaction.objectStore("domains");
       const request_get = objectStore.get(parsedDomain);
       request_get.onerror = (event) => {
         db.close();
