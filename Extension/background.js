@@ -7,6 +7,9 @@ import {
 
 initDB();
 
+let memoryDatabase = []
+let extensionDisabled = false
+
 async function addDynamicRule(id, domain) {
   let UpdateRuleOptions = {
     addRules: [
@@ -58,21 +61,22 @@ async function addRulesForDisabledDomains() {
   let id = 1;
   const disable_domains = await getDisableDomains();
   if (disable_domains) {
+    memoryDatabase = disable_domains
     let excludeMatches = [];
     for (let domain of disable_domains) {
       await addDynamicRule(id++, domain);
       excludeMatches.push(`*://${domain}/*`);
     }
 
-    chrome.scripting.updateContentScripts([
-      {
-        id: "1",
-        matches: ["<all_urls>"],
-        excludeMatches: excludeMatches,
-        js: ["gpc-scripts/add-gpc-dom.js"],
-        runAt: "document_start",
-      },
-    ]);
+    // chrome.scripting.updateContentScripts([
+    //   {
+    //     id: "1",
+    //     matches: ["<all_urls>"],
+    //     excludeMatches: excludeMatches,
+    //     js: ["gpc-scripts/add-gpc-dom.js"],
+    //     runAt: "document_start",
+    //   },
+    // ]);
   }
 }
 
@@ -115,23 +119,36 @@ async function changeExtensionEnabled() {
   await deleteAllDynamicRules();
   const extensionData = await getDomainData("meeExtension");
   const enabledExtension = !extensionData || extensionData.enabled;
+  extensionDisabled = !enabledExtension
 
   if (!enabledExtension) {
-    chrome.scripting.updateContentScripts([
-      {
-        id: "1",
-        matches: ["https://example.com/"],
-        excludeMatches: [],
-        js: ["gpc-scripts/add-gpc-dom.js"],
-        runAt: "document_start",
-      },
-    ]);
+    // chrome.scripting.updateContentScripts([
+    //   {
+    //     id: "1",
+    //     matches: ["https://example.com/"],
+    //     excludeMatches: [],
+    //     js: ["gpc-scripts/add-gpc-dom.js"],
+    //     runAt: "document_start",
+    //   },
+    // ]);
 
     await addDynamicRule(1, "*");
   } else {
     await addRulesForDisabledDomains();
   }
 }
+
+function onCheckEnabledMessageHandled(message, sender, sendResponse) {
+    if (message.msg === "CHECK_ENABLED") {
+      const isEnabled = (memoryDatabase.findIndex((domain) => domain === message.data) === -1 
+      && !extensionDisabled)
+      
+      sendResponse({isEnabled: isEnabled})
+      return true
+    }
+}
+
+chrome.runtime.onMessage.addListener(onCheckEnabledMessageHandled);
 
 async function onMessageHandlerAsync(message, sender, sendResponse) {
   switch (message.msg) {
@@ -155,28 +172,33 @@ async function onMessageHandlerAsync(message, sender, sendResponse) {
 chrome.runtime.onMessage.addListener(onMessageHandlerAsync);
 
 chrome.runtime.onInstalled.addListener(async function (details) {
-  await chrome.scripting.registerContentScripts([
-    {
-      id: "1",
-      matches: ["<all_urls>"],
-      excludeMatches: [],
-      js: ["gpc-scripts/add-gpc-dom.js"],
-      runAt: "document_start",
-    },
-  ]);
+  const disable_domains = await getDisableDomains();
+  if (disable_domains) {
+    memoryDatabase = disable_domains
+  }
+  // await chrome.scripting.registerContentScripts([
+  //   {
+  //     id: "1",
+  //     matches: ["<all_urls>"],
+  //     excludeMatches: [],
+  //     js: ["gpc-scripts/add-gpc-dom.js"],
+  //     runAt: "document_start",
+  //   },
+  // ]);
   const extensionData = await getDomainData("meeExtension");
   const enabledExtension = !extensionData || extensionData.enabled;
+  extensionDisabled = !enabledExtension
 
   if (!enabledExtension) {
-    chrome.scripting.updateContentScripts([
-      {
-        id: "1",
-        matches: ["https://example.com/"],
-        excludeMatches: [],
-        js: ["gpc-scripts/add-gpc-dom.js"],
-        runAt: "document_start",
-      },
-    ]);
+    // chrome.scripting.updateContentScripts([
+    //   {
+    //     id: "1",
+    //     matches: ["https://example.com/"],
+    //     excludeMatches: [],
+    //     js: ["gpc-scripts/add-gpc-dom.js"],
+    //     runAt: "document_start",
+    //   },
+    // ]);
 
     await addDynamicRule(1, "*");
   } else {

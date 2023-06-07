@@ -13,7 +13,35 @@ async function getWellknown(url) {
   });
 }
 
+function setDom() {
+  try {
+    const script_content = `
+        Object.defineProperty(Navigator.prototype, "globalPrivacyControl", {
+          get: () => true,
+          configurable: true,
+          enumerable: true
+        });
+        document.currentScript.parentElement.removeChild(document.currentScript);
+      `;
+      const script = document.createElement("script");
+      script.innerHTML = script_content;
+      document.documentElement.prepend(script);
+  } catch (err) {
+    console.error(`Failed to set DOM signal: ${err}`);
+  }
+}
+
 (() => {
   let url = new URL(location);
   getWellknown(url);
+  chrome.runtime.sendMessage({
+    msg: "CHECK_ENABLED",
+    data: url.hostname,
+  }).then((response) => {
+    if (response.isEnabled) {
+      setDom()
+    }
+  })
+  
+  
 })();
