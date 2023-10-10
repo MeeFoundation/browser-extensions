@@ -30,7 +30,9 @@
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess",
     "activeTab",
-    "scripting"
+    "scripting",
+    "history",
+    "storage"
   ],
   "declarative_net_request": {
     "rule_resources": [
@@ -43,8 +45,7 @@
   },
   "host_permissions": ["<all_urls>"],
   "background": {
-    "scripts": ["background.js"],
-    "persistent": false
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
