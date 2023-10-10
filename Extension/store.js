@@ -141,3 +141,33 @@ export async function changeEnableDomain(parsedDomain) {
   });
 }
 
+const visitedKey = "visitedKey"
+export async function saveVisitedSite(data) {
+  let newValue
+  let currValue
+  try {
+    const curr = await chrome.storage.local.get([visitedKey])
+    currValue = JSON.parse(curr[visitedKey]);
+  } catch {
+    currValue = []
+  }
+  newValue = currValue ? currValue : []
+
+  const newDataObj = {}
+
+  let updFlag = false
+  newValue.forEach(el => {
+    if (el.id === data.id) {
+      el = data
+      updFlag = true
+    }
+  })
+
+  if (!updFlag) {
+    newDataObj[visitedKey] = JSON.stringify([...newValue, data])
+  } else {
+    newDataObj[visitedKey] = JSON.stringify([...newValue])
+  }
+
+  await chrome.storage.local.set(newDataObj)
+}

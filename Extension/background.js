@@ -3,12 +3,23 @@ import {
   addRowToDB,
   getDisableDomains,
   getDomainData,
+  saveVisitedSite,
 } from "./store.js";
 
 initDB();
 
 let memoryDatabase = []
 let extensionDisabled = false
+
+const initHistorySaver = () => {
+  chrome.history.onVisited.addListener(
+    (historyItem) => {
+      saveVisitedSite(historyItem)
+    }
+  )
+}
+
+initHistorySaver()
 
 async function addDynamicRule(id, domain) {
   let UpdateRuleOptions = {
