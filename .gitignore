@@ -8,4 +8,4 @@
 node_modules
 
 dist
-MeeExtensionMac/Shared\ \(Extension\)/Resources/
+MeeExtensionMac/Shared\ \(Extension\)/Resources/**
