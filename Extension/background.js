@@ -150,23 +150,43 @@ function onCheckEnabledMessageHandled(message, sender, sendResponse) {
 
 chrome.runtime.onMessage.addListener(onCheckEnabledMessageHandled);
 
-async function onMessageHandlerAsync(message, sender, sendResponse) {
+function onAppCommunicationMessageHandled(message, sender, sendResponse) {
+  if (message.msg === "APP_COMMUNICATION") {
+    new Promise((resolve, reject) => {
+      chrome.runtime.sendNativeMessage({type: message.type, message: message.data}, function(response) {
+        resolve(response)
+      })
+    }).then((response) => {
+      sendResponse(response)
+    })
+    .catch((e) => {
+      console.log('error: ', e)
+      sendResponse(e)
+    })
+    
+    return true
+  }
+}
+
+chrome.runtime.onMessage.addListener(onAppCommunicationMessageHandled);
+
+function onMessageHandlerAsync(message, sender, sendResponse) {
   switch (message.msg) {
     case "DOWNLOAD_WELLKNOWN": {
       afterDownloadWellknown(message, sender);
-      break;
+      return true;
     }
     case "UPDATE_SELECTOR": {
-      await deleteAllDynamicRules();
-      await addRulesForDisabledDomains();
-      break;
+      deleteAllDynamicRules();
+      addRulesForDisabledDomains();
+      return true;
     }
     case "UPDATE_ENABLED": {
-      await changeExtensionEnabled();
-      break;
+      changeExtensionEnabled();
+      return true;
     }
   }
-  return true;
+  
 }
 
 chrome.runtime.onMessage.addListener(onMessageHandlerAsync);

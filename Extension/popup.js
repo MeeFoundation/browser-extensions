@@ -47,6 +47,25 @@ async function checkEnabledExtension() {
     : "none";
 }
 
+async function checkSiteHasConnection() {
+  const parsedDomain = await getCurrentParsedDomain();
+  chrome.runtime.sendMessage({
+    msg: "APP_COMMUNICATION",
+    type: "GET_DOMAIN_STATUS",
+    data: parsedDomain,
+  })
+  .then((response) => {
+    if (response.hasConnection) {
+      document.getElementById("has-connection").innerHTML = " true"
+      
+    } else {
+      document.getElementById("has-connection").innerHTML = " false"
+    }
+    
+  })
+  
+}
+
 chrome.runtime.onMessage.addListener(async function (message, _, __) {
   const parsedDomain = await getCurrentParsedDomain();
   if (message.msg === "SEND_WELLKNOWN_TO_POPUP") {
@@ -71,6 +90,9 @@ document.addEventListener("DOMContentLoaded", async (event) => {
 
   await checkDomain(parsedDomain);
   await checkEnabledExtension();
+  await checkSiteHasConnection()
+
+  
 });
 
 document

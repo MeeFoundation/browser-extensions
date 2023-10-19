@@ -30,7 +30,8 @@
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess",
     "activeTab",
-    "scripting"
+    "scripting",
+    "nativeMessaging"
   ],
   "declarative_net_request": {
     "rule_resources": [

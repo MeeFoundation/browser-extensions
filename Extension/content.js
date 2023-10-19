@@ -41,7 +41,12 @@ function setDom() {
     if (response.isEnabled) {
       setDom()
     }
+  })  
+  chrome.runtime.sendMessage({
+    msg: "APP_COMMUNICATION",
+    type: "GET_DOMAIN_STATUS",
+    data: url.hostname,
+  }).then((response) => {
+    console.log(response)
   })
-  
-  
 })();
