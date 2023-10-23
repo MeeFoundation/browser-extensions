@@ -4,6 +4,7 @@
 
 body {
   min-width: 250px;
+  width: fit-content;
 }
 .content {
   width: 100%;
