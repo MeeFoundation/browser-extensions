@@ -7,15 +7,14 @@ body {
   width: fit-content;
 }
 .content {
-  width: 100%;
   padding: 10px;
-
   font-family: system-ui;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-items: center;
+  gap: 15px;
 }
 
 .container {
@@ -67,8 +66,8 @@ body {
   left: 4px;
   bottom: 4px;
   background-color: white;
-  /* -webkit-transition: .4s; */
-  /* transition: .4s; */
+   /*-webkit-transition: transform .4s;*/
+   /*transition: transform .4s;*/
   border-radius: 50%;
 }
 
@@ -88,4 +87,11 @@ input:checked + .slider:before {
 
 @media (prefers-color-scheme: dark) {
   /* Dark Mode styles go here. */
+  body {
+    background-color: #1C2833;
+    color: #F2F3F4;
+  }
+  .slider:before {
+    background-color: #F2F3F4;
+  }
 }
