@@ -5,16 +5,24 @@
   "main": "background.js",
   "type": "module",
   "scripts": {
+    "build": "run-p build:*",
+    "build:safari": "APP_BROWSER=safari vite build",
+    "build:firefox": "APP_BROWSER=firefox vite build",
+    "build:chrome": "vite build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm run build:safari && npm run build:chrome",
-    "build:safari": "APP_BROWSER=safari vite build && APP_FILE=popup APP_BROWSER=safari vite build",
-    "build:chrome": "vite build && APP_FILE=popup vite build"
+    "demo": "echo \"Hello $npm_config_first $npm_config_last\"",
+    "test:chrome": "web-ext run --source-dir ./dist/chrome --target=chromium --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me",
+    "test:ff-desktop": "web-ext run --source-dir ./dist/firefox --target=firefox-desktop --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me",
+    "test:ff-android": "web-ext run --android-device=emulator-5554 --source-dir ./dist/firefox --target=firefox-android  --firefox-apk org.mozilla.fenix --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "cross-env": "^7.0.3",
+    "npm-run-all": "^4.1.5",
     "terser": "^5.17.1",
     "vite": "^4.3.3",
-    "vite-plugin-static-copy": "^0.14.0"
+    "vite-plugin-static-copy": "^0.14.0",
+    "web-ext": "^7.8.0"
   }
 }

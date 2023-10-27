@@ -1,17 +1,17 @@
 import { resolve } from "path";
 import { defineConfig } from "vite";
-import { viteStaticCopy } from "vite-plugin-static-copy";
+import { viteStaticCopy, Target } from "vite-plugin-static-copy";
 
 const popup_inputs = [resolve(__dirname, "./popup.js")];
-const background_inputs = [
-  resolve(__dirname, "./background.js"),
-  resolve(__dirname, "./content.js"),
-];
+const background_inputs = [resolve(__dirname, "./background.js"), resolve(__dirname, "./content.js")];
 
-const isPopupBuild = process.env.APP_FILE === "popup";
-const isSafari = process.env.APP_BROWSER === "safari";
+const target = process.env.APP_BROWSER || "chrome";
+const isSafari = target === "safari";
+const isFirefox = target === "firefox";
 
-const copy_targets = [
+const manifestFile = `manifest.${target}.json`;
+
+const copy_targets: Target[] = [
   {
     src: "_locales",
     dest: "",
@@ -29,8 +29,9 @@ const copy_targets = [
     dest: "",
   },
   {
-    src: "manifest.json",
+    src: manifestFile,
     dest: "",
+    rename: "manifest.json",
   },
   {
     src: "rules.json",
@@ -46,13 +47,11 @@ const copy_targets = [
   },
 ];
 
-const outDir = isSafari
-  ? "../MeeExtensionMac/Shared (Extension)/Resources"
-  : "dist";
+const outDir = isSafari ? "dist/safari" : isFirefox ? "dist/firefox" : "dist/chrome";
 
 export default defineConfig({
   build: {
-    emptyOutDir: !isPopupBuild ? true : false,
+    emptyOutDir: true,
     outDir: outDir,
     minify: "terser",
     sourcemap: false,
@@ -60,7 +59,7 @@ export default defineConfig({
       include: [],
     },
     rollupOptions: {
-      input: isPopupBuild ? popup_inputs : background_inputs,
+      input: [...popup_inputs, ...background_inputs],
       output: {
         entryFileNames({ name }) {
           return `${name}.js`;
@@ -70,7 +69,7 @@ export default defineConfig({
   },
   plugins: [
     viteStaticCopy({
-      targets: isPopupBuild ? [] : copy_targets,
+      targets: copy_targets,
     }),
   ],
 });
