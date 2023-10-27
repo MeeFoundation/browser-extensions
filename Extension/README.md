@@ -31,6 +31,7 @@
   ```sh
   npm run build
   ```
+- All sliders should be green at the test websites 
 
 # Testing extension
 - Run test in `Extension` directory
@@ -56,5 +57,6 @@
 
 # How to open an extension in Mozilla Firefox
   - Open [about:debugging](about:debugging)
+  - (Optional) Click on `This Firefox`
   - Click on `Load Temporary Add-on`
   - Select the `manifest.json` file in the "Extension/dist/firefox/" directory in the file manager

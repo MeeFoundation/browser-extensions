@@ -9,8 +9,7 @@
     "build:safari": "APP_BROWSER=safari vite build",
     "build:firefox": "APP_BROWSER=firefox vite build",
     "build:chrome": "vite build",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "demo": "echo \"Hello $npm_config_first $npm_config_last\"",
+    "test": "run-p test:*",
     "test:chrome": "web-ext run --source-dir ./dist/chrome --target=chromium --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me",
     "test:ff-desktop": "web-ext run --source-dir ./dist/firefox --target=firefox-desktop --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me",
     "test:ff-android": "web-ext run --android-device=emulator-5554 --source-dir ./dist/firefox --target=firefox-android  --firefox-apk org.mozilla.fenix --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me"
