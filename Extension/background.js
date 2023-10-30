@@ -82,7 +82,7 @@ async function addRulesForDisabledDomains() {
 
 function afterDownloadWellknown(message, sender) {
   let tabID = sender.tab.id;
-  let url = new URL(sender.origin);
+  let url = new URL(sender.origin || sender.url || sender.tab.url);
   let domain = url.hostname.replace("www.", "");
   let wellknown = [];
 

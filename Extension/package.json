@@ -10,7 +10,7 @@
     "build:firefox": "APP_BROWSER=firefox vite build",
     "build:chrome": "vite build",
     "test": "run-p test:*",
-    "test:chrome": "vite build:chrome && web-ext run --source-dir ./dist/chrome --target=chromium --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me",
+    "test:chrome": "npm run build:chrome && web-ext run --source-dir ./dist/chrome --target=chromium --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me",
     "test:ff-desktop": "npm run build:firefox && web-ext run --source-dir ./dist/firefox --target=firefox-desktop --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me",
     "test:ff-android": "web-ext run --android-device=emulator-5554 --source-dir ./dist/firefox --target=firefox-android  --firefox-apk org.mozilla.fenix --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me"
   },
