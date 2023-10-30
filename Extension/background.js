@@ -139,13 +139,12 @@ async function changeExtensionEnabled() {
 }
 
 function onCheckEnabledMessageHandled(message, sender, sendResponse) {
-    if (message.msg === "CHECK_ENABLED") {
-      const isEnabled = (memoryDatabase.findIndex((domain) => domain === message.data) === -1 
-      && !extensionDisabled)
-      
-      sendResponse({isEnabled: isEnabled})
-      return true
-    }
+  if (message.msg === "CHECK_ENABLED") {
+    const isEnabled = memoryDatabase.findIndex((domain) => domain === message.data) === -1 && !extensionDisabled;
+
+    sendResponse({ isEnabled: isEnabled });
+    return Promise.resolve({ isEnabled });
+  }
 }
 
 chrome.runtime.onMessage.addListener(onCheckEnabledMessageHandled);
@@ -153,18 +152,19 @@ chrome.runtime.onMessage.addListener(onCheckEnabledMessageHandled);
 function onAppCommunicationMessageHandled(message, sender, sendResponse) {
   if (message.msg === "APP_COMMUNICATION") {
     new Promise((resolve, reject) => {
-      chrome.runtime.sendNativeMessage({type: message.type, message: message.data}, function(response) {
-        resolve(response)
+      chrome.runtime.sendNativeMessage("Mee", { type: message.type, message: message.data }, function (response) {
+        resolve(response);
+      });
+    })
+      .then((response) => {
+        sendResponse(response);
+        return Promise.resolve(response);
       })
-    }).then((response) => {
-      sendResponse(response)
-    })
-    .catch((e) => {
-      console.log('error: ', e)
-      sendResponse(e)
-    })
-    
-    return true
+      .catch((e) => {
+        console.log("error: ", e);
+        sendResponse(e);
+        return Promise.reject(e);
+      });
   }
 }
 

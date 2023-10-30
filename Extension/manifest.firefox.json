@@ -26,7 +26,13 @@
     }
   },
 
-  "permissions": ["declarativeNetRequest", "declarativeNetRequestWithHostAccess", "activeTab", "scripting"],
+  "permissions": [
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess",
+    "activeTab",
+    "scripting",
+    "nativeMessaging"
+  ],
   "declarative_net_request": {
     "rule_resources": [
       {
@@ -38,7 +44,8 @@
   },
   "host_permissions": ["<all_urls>"],
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["background.js"],
+    "type": "module"
   },
   "content_scripts": [
     {

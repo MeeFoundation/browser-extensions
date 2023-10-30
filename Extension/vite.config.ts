@@ -54,7 +54,7 @@ export default defineConfig({
     emptyOutDir: true,
     outDir: outDir,
     minify: "terser",
-    sourcemap: false,
+    sourcemap: true,
     commonjsOptions: {
       include: [],
     },
