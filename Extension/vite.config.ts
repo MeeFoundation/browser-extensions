@@ -47,7 +47,11 @@ const copy_targets: Target[] = [
   },
 ];
 
-const outDir = isSafari ? "dist/safari" : isFirefox ? "dist/firefox" : "dist/chrome";
+const outDir = isSafari
+  ? "../MeeExtensionMac/Shared (Extension)/Resources"
+  : isFirefox
+  ? "dist/firefox"
+  : "dist/chrome";
 
 export default defineConfig({
   build: {
