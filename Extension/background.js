@@ -38,8 +38,9 @@ async function addDynamicRule(id, domain) {
             "csp_report",
             "media",
             "websocket",
-            "webtransport",
-            "webbundle",
+            // TODO: Allow only on Chrome. Should research about necessity of this types for us.
+            // "webtransport",
+            // "webbundle",
             "other",
           ],
         },
@@ -51,8 +52,7 @@ async function addDynamicRule(id, domain) {
 }
 
 async function deleteAllDynamicRules() {
-  let MAX_RULES =
-    chrome.declarativeNetRequest.MAX_NUMBER_OF_DYNAMIC_AND_SESSION_RULES;
+  let MAX_RULES = chrome.declarativeNetRequest.MAX_NUMBER_OF_DYNAMIC_AND_SESSION_RULES;
   let UpdateRuleOptions = { removeRuleIds: [...Array(MAX_RULES).keys()] };
   await chrome.declarativeNetRequest.updateDynamicRules(UpdateRuleOptions);
 }
@@ -61,7 +61,7 @@ async function addRulesForDisabledDomains() {
   let id = 1;
   const disable_domains = await getDisableDomains();
   if (disable_domains) {
-    memoryDatabase = disable_domains
+    memoryDatabase = disable_domains;
     let excludeMatches = [];
     for (let domain of disable_domains) {
       await addDynamicRule(id++, domain);
@@ -82,15 +82,14 @@ async function addRulesForDisabledDomains() {
 
 function afterDownloadWellknown(message, sender) {
   let tabID = sender.tab.id;
-  let url = new URL(sender.origin || sender.url || sender.tab.url);
+  let url = new URL(sender.url);
   let domain = url.hostname.replace("www.", "");
   let wellknown = [];
 
   wellknown[tabID] = message.data;
   let wellknownData = message.data;
 
-  const gpc =
-    wellknown[tabID] && wellknown[tabID]["gpc"] === true ? true : false;
+  const gpc = wellknown[tabID] && wellknown[tabID]["gpc"] === true ? true : false;
 
   if (gpc === true) {
     chrome.action.setIcon({
@@ -119,7 +118,7 @@ async function changeExtensionEnabled() {
   await deleteAllDynamicRules();
   const extensionData = await getDomainData("meeExtension");
   const enabledExtension = !extensionData || extensionData.enabled;
-  extensionDisabled = !enabledExtension
+  extensionDisabled = !enabledExtension;
 
   if (!enabledExtension) {
     // chrome.scripting.updateContentScripts([
@@ -186,15 +185,16 @@ function onMessageHandlerAsync(message, sender, sendResponse) {
       return true;
     }
   }
-  
 }
 
 chrome.runtime.onMessage.addListener(onMessageHandlerAsync);
 
 chrome.runtime.onInstalled.addListener(async function (details) {
+  console.log(details);
+  await chrome.permissions.request({ origins: ["<all_urls>"] });
   const disable_domains = await getDisableDomains();
   if (disable_domains) {
-    memoryDatabase = disable_domains
+    memoryDatabase = disable_domains;
   }
   // await chrome.scripting.registerContentScripts([
   //   {
@@ -207,7 +207,7 @@ chrome.runtime.onInstalled.addListener(async function (details) {
   // ]);
   const extensionData = await getDomainData("meeExtension");
   const enabledExtension = !extensionData || extensionData.enabled;
-  extensionDisabled = !enabledExtension
+  extensionDisabled = !enabledExtension;
 
   if (!enabledExtension) {
     // chrome.scripting.updateContentScripts([
