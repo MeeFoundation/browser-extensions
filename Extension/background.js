@@ -190,8 +190,6 @@ function onMessageHandlerAsync(message, sender, sendResponse) {
 chrome.runtime.onMessage.addListener(onMessageHandlerAsync);
 
 chrome.runtime.onInstalled.addListener(async function (details) {
-  console.log(details);
-  await chrome.permissions.request({ origins: ["<all_urls>"] });
   const disable_domains = await getDisableDomains();
   if (disable_domains) {
     memoryDatabase = disable_domains;
