@@ -128,6 +128,7 @@ function onCheckEnabledMessageHandled(message, sender, sendResponse) {
   if (message.msg === "CHECK_ENABLED") {
     const isEnabled = memoryDatabase.findIndex((domain) => domain === message.data) === -1 && !extensionDisabled;
     sendResponse({ isEnabled: isEnabled });
+    return true;
   }
 }
 
@@ -149,6 +150,8 @@ function onAppCommunicationMessageHandled(message, sender, sendResponse) {
         sendResponse(e);
         return true;
       });
+
+      return true;
   }
 }
 
@@ -158,13 +161,16 @@ function onMessageHandlerAsync(message, sender) {
   switch (message.msg) {
     case "DOWNLOAD_WELLKNOWN": {
       afterDownloadWellknown(message, sender);
+      return true;
     }
     case "UPDATE_SELECTOR": {
       deleteAllDynamicRules();
       addRulesForDisabledDomains();
+      return true;
     }
     case "UPDATE_ENABLED": {
       changeExtensionEnabled();
+      return true;
     }
   }
 }
