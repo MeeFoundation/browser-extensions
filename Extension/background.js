@@ -4,11 +4,13 @@ import {
   getDisableDomains,
   getDomainData,
 } from "./store.js";
+import { getBrowserInfo } from "./utils/browser.js";
 
 initDB();
 
-let memoryDatabase = []
-let extensionDisabled = false
+let memoryDatabase = [];
+let extensionDisabled = false;
+const browserInfo = getBrowserInfo();
 
 async function addDynamicRule(id, domain) {
   let UpdateRuleOptions = {
@@ -38,9 +40,6 @@ async function addDynamicRule(id, domain) {
             "csp_report",
             "media",
             "websocket",
-            // TODO: Allow only on Chrome. Should research about necessity of this types for us.
-            // "webtransport",
-            // "webbundle",
             "other",
           ],
         },
@@ -48,6 +47,12 @@ async function addDynamicRule(id, domain) {
     ],
     removeRuleIds: [id],
   };
+
+  // TODO: Allow only on Chrome. Should research about necessity of this types for us.
+  if (browserInfo === "Chrome") UpdateRuleOptions.addRules[0].condition.resourceTypes.push("webtransport", "webbundle");
+
+  console.log(`Rules:`, UpdateRuleOptions.addRules);
+
   await chrome.declarativeNetRequest.updateDynamicRules(UpdateRuleOptions);
 }
 
@@ -140,16 +145,14 @@ async function changeExtensionEnabled() {
 function onCheckEnabledMessageHandled(message, sender, sendResponse) {
   if (message.msg === "CHECK_ENABLED") {
     const isEnabled = memoryDatabase.findIndex((domain) => domain === message.data) === -1 && !extensionDisabled;
-
     sendResponse({ isEnabled: isEnabled });
-    return Promise.resolve({ isEnabled });
   }
 }
 
 chrome.runtime.onMessage.addListener(onCheckEnabledMessageHandled);
 
 function onAppCommunicationMessageHandled(message, sender, sendResponse) {
-  if (message.msg === "APP_COMMUNICATION") {
+  if (message.msg === "APP_COMMUNICATION" && browserInfo !== "Firefox Mobile") {
     new Promise((resolve, reject) => {
       chrome.runtime.sendNativeMessage("Mee", { type: message.type, message: message.data }, function (response) {
         resolve(response);
@@ -157,39 +160,36 @@ function onAppCommunicationMessageHandled(message, sender, sendResponse) {
     })
       .then((response) => {
         sendResponse(response);
-        return Promise.resolve(response);
+        return true;
       })
       .catch((e) => {
         console.log("error: ", e);
         sendResponse(e);
-        return Promise.reject(e);
+        return true;
       });
   }
 }
 
 chrome.runtime.onMessage.addListener(onAppCommunicationMessageHandled);
 
-function onMessageHandlerAsync(message, sender, sendResponse) {
+function onMessageHandlerAsync(message, sender) {
   switch (message.msg) {
     case "DOWNLOAD_WELLKNOWN": {
       afterDownloadWellknown(message, sender);
-      return true;
     }
     case "UPDATE_SELECTOR": {
       deleteAllDynamicRules();
       addRulesForDisabledDomains();
-      return true;
     }
     case "UPDATE_ENABLED": {
       changeExtensionEnabled();
-      return true;
     }
   }
 }
 
 chrome.runtime.onMessage.addListener(onMessageHandlerAsync);
 
-chrome.runtime.onInstalled.addListener(async function (details) {
+chrome.runtime.onInstalled.addListener(async function () {
   const disable_domains = await getDisableDomains();
   if (disable_domains) {
     memoryDatabase = disable_domains;

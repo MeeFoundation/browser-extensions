@@ -16,13 +16,7 @@ function getCurrentParsedDomain() {
 }
 
 function getEnabled(domainData, wellknownData = null) {
-  if (domainData) {
-    return domainData.enabled;
-  } else if (wellknownData && wellknownData.gpc) {
-    return true;
-  } else {
-    return false;
-  }
+  return domainData?.enabled || (wellknownData && wellknownData?.gpc);
 }
 
 async function checkDomain(parsedDomain, wellknownData = null) {
