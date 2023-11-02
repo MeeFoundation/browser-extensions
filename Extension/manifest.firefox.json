@@ -38,14 +38,14 @@
       {
         "id": "universal_GPC",
         "enabled": true,
-        "path": "rules.json"
+        "path": "rules.firefox.json"
       }
     ]
   },
   "host_permissions": ["<all_urls>"],
   "background": {
     "scripts": ["background.js"],
-    "persistent": false
+    "type": "module"
   },
   "content_scripts": [
     {
@@ -61,8 +61,7 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'",
-    "sandbox": "sandbox allow-scripts; script-src 'self' 'unsafe-eval'; object-src 'self'"
+    "extension_pages": "script-src 'self'; object-src 'self'"
   },
   "browser_specific_settings": {
     "safari": {

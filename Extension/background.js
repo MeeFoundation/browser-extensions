@@ -4,13 +4,16 @@ import {
   getDisableDomains,
   getDomainData,
 } from "./store.js";
+import { getBrowserInfo } from "./utils/browser.js";
 
 initDB();
 
-let memoryDatabase = []
-let extensionDisabled = false
+let memoryDatabase = [];
+let extensionDisabled = false;
+const browserInfo = getBrowserInfo();
 
 async function addDynamicRule(id, domain) {
+  const allResourceTypes = Object.values(chrome.declarativeNetRequest.ResourceType);
   let UpdateRuleOptions = {
     addRules: [
       {
@@ -25,34 +28,18 @@ async function addDynamicRule(id, domain) {
         },
         condition: {
           urlFilter: domain,
-          resourceTypes: [
-            "main_frame",
-            "sub_frame",
-            "stylesheet",
-            "script",
-            "image",
-            "font",
-            "object",
-            "xmlhttprequest",
-            "ping",
-            "csp_report",
-            "media",
-            "websocket",
-            "webtransport",
-            "webbundle",
-            "other",
-          ],
+          resourceTypes: allResourceTypes,
         },
       },
     ],
     removeRuleIds: [id],
   };
+
   await chrome.declarativeNetRequest.updateDynamicRules(UpdateRuleOptions);
 }
 
 async function deleteAllDynamicRules() {
-  let MAX_RULES =
-    chrome.declarativeNetRequest.MAX_NUMBER_OF_DYNAMIC_AND_SESSION_RULES;
+  let MAX_RULES = chrome.declarativeNetRequest.MAX_NUMBER_OF_DYNAMIC_AND_SESSION_RULES;
   let UpdateRuleOptions = { removeRuleIds: [...Array(MAX_RULES).keys()] };
   await chrome.declarativeNetRequest.updateDynamicRules(UpdateRuleOptions);
 }
@@ -61,7 +48,7 @@ async function addRulesForDisabledDomains() {
   let id = 1;
   const disable_domains = await getDisableDomains();
   if (disable_domains) {
-    memoryDatabase = disable_domains
+    memoryDatabase = disable_domains;
     let excludeMatches = [];
     for (let domain of disable_domains) {
       await addDynamicRule(id++, domain);
@@ -82,15 +69,14 @@ async function addRulesForDisabledDomains() {
 
 function afterDownloadWellknown(message, sender) {
   let tabID = sender.tab.id;
-  let url = new URL(sender.origin);
+  let url = new URL(sender.url);
   let domain = url.hostname.replace("www.", "");
   let wellknown = [];
 
   wellknown[tabID] = message.data;
   let wellknownData = message.data;
 
-  const gpc =
-    wellknown[tabID] && wellknown[tabID]["gpc"] === true ? true : false;
+  const gpc = wellknown[tabID] && wellknown[tabID]["gpc"] === true ? true : false;
 
   if (gpc === true) {
     chrome.action.setIcon({
@@ -119,7 +105,7 @@ async function changeExtensionEnabled() {
   await deleteAllDynamicRules();
   const extensionData = await getDomainData("meeExtension");
   const enabledExtension = !extensionData || extensionData.enabled;
-  extensionDisabled = !enabledExtension
+  extensionDisabled = !enabledExtension;
 
   if (!enabledExtension) {
     // chrome.scripting.updateContentScripts([
@@ -139,38 +125,39 @@ async function changeExtensionEnabled() {
 }
 
 function onCheckEnabledMessageHandled(message, sender, sendResponse) {
-    if (message.msg === "CHECK_ENABLED") {
-      const isEnabled = (memoryDatabase.findIndex((domain) => domain === message.data) === -1 
-      && !extensionDisabled)
-      
-      sendResponse({isEnabled: isEnabled})
-      return true
-    }
+  if (message.msg === "CHECK_ENABLED") {
+    const isEnabled = memoryDatabase.findIndex((domain) => domain === message.data) === -1 && !extensionDisabled;
+    sendResponse({ isEnabled: isEnabled });
+    return true;
+  }
 }
 
 chrome.runtime.onMessage.addListener(onCheckEnabledMessageHandled);
 
 function onAppCommunicationMessageHandled(message, sender, sendResponse) {
-  if (message.msg === "APP_COMMUNICATION") {
+  if (message.msg === "APP_COMMUNICATION" && browserInfo !== "Firefox Mobile") {
     new Promise((resolve, reject) => {
-      chrome.runtime.sendNativeMessage({type: message.type, message: message.data}, function(response) {
-        resolve(response)
+      chrome.runtime.sendNativeMessage("Mee", { type: message.type, message: message.data }, function (response) {
+        resolve(response);
+      });
+    })
+      .then((response) => {
+        sendResponse(response);
+        return true;
       })
-    }).then((response) => {
-      sendResponse(response)
-    })
-    .catch((e) => {
-      console.log('error: ', e)
-      sendResponse(e)
-    })
-    
-    return true
+      .catch((e) => {
+        console.log("error: ", e);
+        sendResponse(e);
+        return true;
+      });
+
+      return true;
   }
 }
 
 chrome.runtime.onMessage.addListener(onAppCommunicationMessageHandled);
 
-function onMessageHandlerAsync(message, sender, sendResponse) {
+function onMessageHandlerAsync(message, sender) {
   switch (message.msg) {
     case "DOWNLOAD_WELLKNOWN": {
       afterDownloadWellknown(message, sender);
@@ -186,15 +173,14 @@ function onMessageHandlerAsync(message, sender, sendResponse) {
       return true;
     }
   }
-  
 }
 
 chrome.runtime.onMessage.addListener(onMessageHandlerAsync);
 
-chrome.runtime.onInstalled.addListener(async function (details) {
+chrome.runtime.onInstalled.addListener(async function () {
   const disable_domains = await getDisableDomains();
   if (disable_domains) {
-    memoryDatabase = disable_domains
+    memoryDatabase = disable_domains;
   }
   // await chrome.scripting.registerContentScripts([
   //   {
@@ -207,7 +193,7 @@ chrome.runtime.onInstalled.addListener(async function (details) {
   // ]);
   const extensionData = await getDomainData("meeExtension");
   const enabledExtension = !extensionData || extensionData.enabled;
-  extensionDisabled = !enabledExtension
+  extensionDisabled = !enabledExtension;
 
   if (!enabledExtension) {
     // chrome.scripting.updateContentScripts([

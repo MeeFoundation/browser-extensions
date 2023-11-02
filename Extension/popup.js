@@ -16,13 +16,7 @@ function getCurrentParsedDomain() {
 }
 
 function getEnabled(domainData, wellknownData = null) {
-  if (domainData) {
-    return domainData.enabled;
-  } else if (wellknownData && wellknownData.gpc) {
-    return true;
-  } else {
-    return false;
-  }
+  return domainData?.enabled || (wellknownData && wellknownData?.gpc);
 }
 
 async function checkDomain(parsedDomain, wellknownData = null) {
@@ -49,21 +43,19 @@ async function checkEnabledExtension() {
 
 async function checkSiteHasConnection() {
   const parsedDomain = await getCurrentParsedDomain();
-  chrome.runtime.sendMessage({
-    msg: "APP_COMMUNICATION",
-    type: "GET_DOMAIN_STATUS",
-    data: parsedDomain,
-  })
-  .then((response) => {
-    if (response.hasConnection) {
-      document.getElementById("has-connection").innerHTML = " true"
-      
-    } else {
-      document.getElementById("has-connection").innerHTML = " false"
-    }
-    
-  })
-  
+  chrome.runtime
+    .sendMessage({
+      msg: "APP_COMMUNICATION",
+      type: "GET_DOMAIN_STATUS",
+      data: parsedDomain,
+    })
+    .then((response) => {
+      if (response?.hasConnection) {
+        document.getElementById("has-connection").innerHTML = " true";
+      } else {
+        document.getElementById("has-connection").innerHTML = " false";
+      }
+    });
 }
 
 chrome.runtime.onMessage.addListener(async function (message, _, __) {
@@ -77,11 +69,9 @@ chrome.runtime.onMessage.addListener(async function (message, _, __) {
   }
 });
 
-document.addEventListener("DOMContentLoaded", async (event) => {
+document.addEventListener("DOMContentLoaded", async (_) => {
   const parsedDomain = await getCurrentParsedDomain();
-  document.getElementById("current-domain").innerHTML = parsedDomain
-    ? parsedDomain
-    : "Undefined";
+  document.getElementById("current-domain").innerHTML = parsedDomain ? parsedDomain : "Undefined";
 
   chrome.runtime.sendMessage({
     msg: "POPUP_LOADED",
@@ -90,27 +80,23 @@ document.addEventListener("DOMContentLoaded", async (event) => {
 
   await checkDomain(parsedDomain);
   await checkEnabledExtension();
-  await checkSiteHasConnection()
-
-  
+  await checkSiteHasConnection();
 });
 
-document
-  .getElementById("slider-item")
-  .addEventListener("click", async (event) => {
-    const parsedDomain = await getCurrentParsedDomain();
+document.getElementById("slider-item").addEventListener("click", async (_) => {
+  const parsedDomain = await getCurrentParsedDomain();
 
-    const update_result = await changeEnableDomain(parsedDomain);
+  const update_result = await changeEnableDomain(parsedDomain);
 
-    if (update_result) {
-      chrome.runtime.sendMessage({
-        msg: "UPDATE_SELECTOR",
-      });
-      checkDomain(parsedDomain);
-    }
-  });
+  if (update_result) {
+    chrome.runtime.sendMessage({
+      msg: "UPDATE_SELECTOR",
+    });
+    checkDomain(parsedDomain);
+  }
+});
 
-document.getElementById("slider").addEventListener("click", async (event) => {
+document.getElementById("slider").addEventListener("click", async (_) => {
   const parsedDomain = await getCurrentParsedDomain();
   const update_result = await changeEnableDomain("meeExtension");
 

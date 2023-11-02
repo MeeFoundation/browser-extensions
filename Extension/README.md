@@ -26,13 +26,37 @@
   - [https://globalprivacycontrol.org/](https://globalprivacycontrol.org/)
   - [https://global-privacy-control.glitch.me/](https://global-privacy-control.glitch.me/)
 
-# How to open an extension in Google Chrome
-  - Run build in `Extension` directory
+# Start using extension
+- Run build in `Extension` directory
   ```sh
   npm run build
   ```
+- All sliders should be green at the test websites 
 
+# Testing extension
+- Run test in `Extension` directory
+## For testing in Chrome
+  ```sh
+  npm run test:chrome
+  ```
+## For testing in Firefox Desktop
+  ```sh
+  npm run test:ff-desktop
+  ```
+## For testing in Firefox Android
+- Change the "--android-device" variable in the test:ff-android command in the package.json file to your android device name
+- Run test
+  ```sh
+  npm run test:ff-android
+  ```
+
+# How to open an extension in Google Chrome
   - Open [chrome://extensions/](chrome://extensions/)
   - Click on `Load unpacked`
-  - Select the `Extension/dist` directory in the file manager
+  - Select the `Extension/dist/chrome` directory in the file manager
 
+# How to open an extension in Mozilla Firefox
+  - Open [about:debugging](about:debugging)
+  - (Optional) Click on `This Firefox`
+  - Click on `Load Temporary Add-on`
+  - Select the `manifest.json` file in the "Extension/dist/firefox/" directory in the file manager
