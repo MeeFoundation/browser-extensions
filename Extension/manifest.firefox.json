@@ -38,7 +38,7 @@
       {
         "id": "universal_GPC",
         "enabled": true,
-        "path": "rules.json"
+        "path": "rules.firefox.json"
       }
     ]
   },

@@ -13,6 +13,7 @@ let extensionDisabled = false;
 const browserInfo = getBrowserInfo();
 
 async function addDynamicRule(id, domain) {
+  const allResourceTypes = Object.values(chrome.declarativeNetRequest.ResourceType);
   let UpdateRuleOptions = {
     addRules: [
       {
@@ -27,31 +28,12 @@ async function addDynamicRule(id, domain) {
         },
         condition: {
           urlFilter: domain,
-          resourceTypes: [
-            "main_frame",
-            "sub_frame",
-            "stylesheet",
-            "script",
-            "image",
-            "font",
-            "object",
-            "xmlhttprequest",
-            "ping",
-            "csp_report",
-            "media",
-            "websocket",
-            "other",
-          ],
+          resourceTypes: allResourceTypes,
         },
       },
     ],
     removeRuleIds: [id],
   };
-
-  // TODO: Allow only on Chrome. Should research about necessity of this types for us.
-  if (browserInfo === "Chrome") UpdateRuleOptions.addRules[0].condition.resourceTypes.push("webtransport", "webbundle");
-
-  console.log(`Rules:`, UpdateRuleOptions.addRules);
 
   await chrome.declarativeNetRequest.updateDynamicRules(UpdateRuleOptions);
 }
