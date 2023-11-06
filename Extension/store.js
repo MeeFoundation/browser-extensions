@@ -115,6 +115,7 @@ export async function changeEnableDomain(parsedDomain) {
       const objectStore = transaction.objectStore("domains");
       const request_get = objectStore.get(parsedDomain);
       request_get.onerror = (event) => {
+      console.log(`${parsedDomain} Result: has't been found`);
         db.close();
         reject();
       };
@@ -134,7 +135,7 @@ export async function changeEnableDomain(parsedDomain) {
         };
         requestUpdate.onsuccess = (event) => {
           db.close();
-          resolve(true);
+          resolve({ domain: new_data.domain, isEnabled: new_data.enabled });
         };
       };
     };

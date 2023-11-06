@@ -4,7 +4,8 @@ import {
   getDisableDomains,
   getDomainData,
 } from "./store.js";
-import { getBrowserInfo } from "./utils/browser.js";
+import { getBrowserInfo, getRules } from "./utils/browser";
+import { getDomainFromUrl } from "./utils/string";
 
 initDB();
 
@@ -12,8 +13,9 @@ let memoryDatabase = [];
 let extensionDisabled = false;
 const browserInfo = getBrowserInfo();
 
-async function addDynamicRule(id, domain) {
+async function toggleGPCHeaders(id, domain, mode = "enable") {
   const allResourceTypes = Object.values(chrome.declarativeNetRequest.ResourceType);
+  console.log(id, domain);
   let UpdateRuleOptions = {
     addRules: [
       {
@@ -22,8 +24,8 @@ async function addDynamicRule(id, domain) {
         action: {
           type: "modifyHeaders",
           requestHeaders: [
-            { header: "Sec-GPC", operation: "remove" },
-            { header: "DNT", operation: "remove" },
+            { header: "Sec-GPC", operation: "set", value: mode === "enable" ? "1" : "0" },
+            { header: "DNT", operation: "set", value: mode === "enable" ? "1" : "0" },
           ],
         },
         condition: {
@@ -36,12 +38,15 @@ async function addDynamicRule(id, domain) {
   };
 
   await chrome.declarativeNetRequest.updateDynamicRules(UpdateRuleOptions);
+  console.log(`Rules has been ${mode}d`);
 }
 
 async function deleteAllDynamicRules() {
-  let MAX_RULES = chrome.declarativeNetRequest.MAX_NUMBER_OF_DYNAMIC_AND_SESSION_RULES;
-  let UpdateRuleOptions = { removeRuleIds: [...Array(MAX_RULES).keys()] };
-  await chrome.declarativeNetRequest.updateDynamicRules(UpdateRuleOptions);
+  const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
+  const oldRuleIds = oldRules.map((rule) => rule.id);
+
+  await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: oldRuleIds });
+  console.log(`Rules has been removed`);
 }
 
 async function addRulesForDisabledDomains() {
@@ -51,7 +56,7 @@ async function addRulesForDisabledDomains() {
     memoryDatabase = disable_domains;
     let excludeMatches = [];
     for (let domain of disable_domains) {
-      await addDynamicRule(id++, domain);
+      await toggleGPCHeaders(id++, domain, "disable");
       excludeMatches.push(`*://${domain}/*`);
     }
 
@@ -69,8 +74,7 @@ async function addRulesForDisabledDomains() {
 
 function afterDownloadWellknown(message, sender) {
   let tabID = sender.tab.id;
-  let url = new URL(sender.url);
-  let domain = url.hostname.replace("www.", "");
+  let domain = getDomainFromUrl(sender.url);
   let wellknown = [];
 
   wellknown[tabID] = message.data;
@@ -151,7 +155,7 @@ function onAppCommunicationMessageHandled(message, sender, sendResponse) {
         return true;
       });
 
-      return true;
+    return true;
   }
 }
 
@@ -165,7 +169,7 @@ function onMessageHandlerAsync(message, sender) {
     }
     case "UPDATE_SELECTOR": {
       deleteAllDynamicRules();
-      addRulesForDisabledDomains();
+      toggleGPCHeaders(1, message.domain, message.mode);
       return true;
     }
     case "UPDATE_ENABLED": {

@@ -1,31 +1,16 @@
 import { getDomainData, changeEnableDomain } from "./store.js";
-
-function getCurrentParsedDomain() {
-  return new Promise((resolve, reject) => {
-    try {
-      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        let tab = tabs[0];
-        let url = new URL(tab.url);
-        let currentUrl = url.hostname.replace("www.", "");
-        resolve(currentUrl);
-      });
-    } catch (e) {
-      reject();
-    }
-  });
-}
+import { getCurrentParsedDomain } from "./utils/browser";
 
 function getEnabled(domainData, wellknownData = null) {
-  return domainData?.enabled || (wellknownData && wellknownData?.gpc);
+  // return !!domainData.enabled || !!(wellknownData && wellknownData?.gpc);
+  return domainData.enabled;
 }
 
 async function checkDomain(parsedDomain, wellknownData = null) {
   const domainData = await getDomainData(parsedDomain);
   const enabled = getEnabled(domainData, wellknownData);
-  const enabledExtension = isExtensionEnabled();
-  if (!enabledExtension) {
-  }
-  document.getElementById("slider-item").checked = enabled;
+  console.log(domainData, enabled);
+  document.getElementById("slider-domain").checked = enabled;
 }
 
 async function isExtensionEnabled() {
@@ -35,10 +20,8 @@ async function isExtensionEnabled() {
 
 async function checkEnabledExtension() {
   const enabledExtension = await isExtensionEnabled();
-  document.getElementById("slider").checked = enabledExtension;
-  document.getElementById("domain-container").style.display = enabledExtension
-    ? "flex"
-    : "none";
+  document.getElementById("slider-extension").checked = enabledExtension;
+  document.getElementById("domain-container").style.display = enabledExtension ? "flex" : "none";
 }
 
 async function checkSiteHasConnection() {
@@ -59,8 +42,8 @@ async function checkSiteHasConnection() {
 }
 
 chrome.runtime.onMessage.addListener(async function (message, _, __) {
-  const parsedDomain = await getCurrentParsedDomain();
   if (message.msg === "SEND_WELLKNOWN_TO_POPUP") {
+    const parsedDomain = await getCurrentParsedDomain();
     let { domain, wellknownData } = message.data;
 
     if (domain === parsedDomain) {
@@ -83,20 +66,21 @@ document.addEventListener("DOMContentLoaded", async (_) => {
   await checkSiteHasConnection();
 });
 
-document.getElementById("slider-item").addEventListener("click", async (_) => {
+document.getElementById("slider-domain").addEventListener("click", async (_) => {
   const parsedDomain = await getCurrentParsedDomain();
-
   const update_result = await changeEnableDomain(parsedDomain);
 
   if (update_result) {
     chrome.runtime.sendMessage({
       msg: "UPDATE_SELECTOR",
+      mode: update_result.mode ? "enable" : "disable",
+      domain: update_result.domain,
     });
-    checkDomain(parsedDomain);
+    checkDomain(update_result.domain);
   }
 });
 
-document.getElementById("slider").addEventListener("click", async (_) => {
+document.getElementById("slider-extension").addEventListener("click", async (_) => {
   const parsedDomain = await getCurrentParsedDomain();
   const update_result = await changeEnableDomain("meeExtension");
 
