@@ -1,17 +1,45 @@
-import {
-  initDB,
-  addRowToDB,
-  getDisableDomains,
-  getDomainData,
-} from "./store.js";
-import { getBrowserInfo, getRules } from "./utils/browser";
+import { initDB, addRowToDB, getDisableDomains, getDomainData } from "./store.js";
 import { getDomainFromUrl } from "./utils/string";
 
 initDB();
 
 let memoryDatabase = [];
 let extensionDisabled = false;
-const browserInfo = getBrowserInfo();
+
+chrome.runtime.onInstalled.addListener(async function () {
+  const disable_domains = await getDisableDomains();
+  if (disable_domains) {
+    memoryDatabase = disable_domains;
+  }
+  // await chrome.scripting.registerContentScripts([
+  //   {
+  //     id: "1",
+  //     matches: ["<all_urls>"],
+  //     excludeMatches: [],
+  //     js: ["gpc-scripts/add-gpc-dom.js"],
+  //     runAt: "document_start",
+  //   },
+  // ]);
+  const extensionData = await getDomainData("meeExtension");
+  const enabledExtension = !extensionData || extensionData.enabled;
+  extensionDisabled = !enabledExtension;
+
+  if (!enabledExtension) {
+    // chrome.scripting.updateContentScripts([
+    //   {
+    //     id: "1",
+    //     matches: ["https://example.com/"],
+    //     excludeMatches: [],
+    //     js: ["gpc-scripts/add-gpc-dom.js"],
+    //     runAt: "document_start",
+    //   },
+    // ]);
+
+    await addDynamicRule(1, "*");
+  } else {
+    await addRulesForDisabledDomains();
+  }
+});
 
 async function toggleGPCHeaders(id, domain, mode = "enable") {
   const allResourceTypes = Object.values(chrome.declarativeNetRequest.ResourceType);
@@ -128,40 +156,27 @@ async function changeExtensionEnabled() {
   }
 }
 
-function onCheckEnabledMessageHandled(message, sender, sendResponse) {
-  if (message.msg === "CHECK_ENABLED") {
-    const isEnabled = memoryDatabase.findIndex((domain) => domain === message.data) === -1 && !extensionDisabled;
-    sendResponse({ isEnabled: isEnabled });
-    return true;
-  }
+function onCheckEnabledMessageHandled(message, sendResponse) {
+  const isEnabled = memoryDatabase.findIndex((domain) => domain === message.data) === -1 && !extensionDisabled;
+  sendResponse({ isEnabled: isEnabled });
 }
 
-chrome.runtime.onMessage.addListener(onCheckEnabledMessageHandled);
-
-function onAppCommunicationMessageHandled(message, sender, sendResponse) {
-  if (message.msg === "APP_COMMUNICATION" && browserInfo !== "Firefox Mobile") {
-    new Promise((resolve, reject) => {
-      chrome.runtime.sendNativeMessage("Mee", { type: message.type, message: message.data }, function (response) {
-        resolve(response);
-      });
+function onAppCommunicationMessageHandled(message, sendResponse) {
+  new Promise((resolve) => {
+    chrome.runtime.sendNativeMessage("Mee", { type: message.type, message: message.data }, function (response) {
+      resolve(response);
+    });
+  })
+    .then((response) => {
+      sendResponse(response);
     })
-      .then((response) => {
-        sendResponse(response);
-        return true;
-      })
-      .catch((e) => {
-        console.log("error: ", e);
-        sendResponse(e);
-        return true;
-      });
-
-    return true;
-  }
+    .catch((e) => {
+      console.log("error: ", e);
+      sendResponse(e);
+    });
 }
 
-chrome.runtime.onMessage.addListener(onAppCommunicationMessageHandled);
-
-function onMessageHandlerAsync(message, sender) {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message.msg) {
     case "DOWNLOAD_WELLKNOWN": {
       afterDownloadWellknown(message, sender);
@@ -176,42 +191,16 @@ function onMessageHandlerAsync(message, sender) {
       changeExtensionEnabled();
       return true;
     }
-  }
-}
-
-chrome.runtime.onMessage.addListener(onMessageHandlerAsync);
-
-chrome.runtime.onInstalled.addListener(async function () {
-  const disable_domains = await getDisableDomains();
-  if (disable_domains) {
-    memoryDatabase = disable_domains;
-  }
-  // await chrome.scripting.registerContentScripts([
-  //   {
-  //     id: "1",
-  //     matches: ["<all_urls>"],
-  //     excludeMatches: [],
-  //     js: ["gpc-scripts/add-gpc-dom.js"],
-  //     runAt: "document_start",
-  //   },
-  // ]);
-  const extensionData = await getDomainData("meeExtension");
-  const enabledExtension = !extensionData || extensionData.enabled;
-  extensionDisabled = !enabledExtension;
-
-  if (!enabledExtension) {
-    // chrome.scripting.updateContentScripts([
-    //   {
-    //     id: "1",
-    //     matches: ["https://example.com/"],
-    //     excludeMatches: [],
-    //     js: ["gpc-scripts/add-gpc-dom.js"],
-    //     runAt: "document_start",
-    //   },
-    // ]);
-
-    await addDynamicRule(1, "*");
-  } else {
-    await addRulesForDisabledDomains();
+    case "APP_COMMUNICATION": {
+      onAppCommunicationMessageHandled(message, sendResponse);
+      return true;
+    }
+    case "CHECK_ENABLED": {
+      onCheckEnabledMessageHandled(message, sendResponse);
+      return true;
+    }
+    default: {
+      return false;
+    }
   }
 });
