@@ -53,4 +53,9 @@ function setDom() {
     .then((response) => {
       console.log(response);
     });
+    chrome.runtime.onMessage.addListener((message) => {
+      if (message.msg === "ENABLE_DOM") {
+        setDom();
+      }
+    });
 })();

@@ -131,6 +131,7 @@ async function changeExtensionEnabled() {
     //     runAt: "document_start",
     //   },
     // ]);
+    chrome.runtime.sendMessage({ msg: "ENABLE_DOM" });
 
     await toggleGPCHeaders(1, "*");
     await addRulesForDisabledDomains();
@@ -141,6 +142,7 @@ async function changeExtensionEnabled() {
 
 function onCheckEnabledMessageHandled(message, sendResponse) {
   const isEnabled = memoryDatabase.findIndex((domain) => domain === message.data) === -1 && !extensionDisabled;
+
   sendResponse({ isEnabled });
 }
 

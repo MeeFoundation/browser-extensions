@@ -9,7 +9,6 @@ function getEnabled(domainData, wellknownData = null) {
 async function checkDomain(parsedDomain, wellknownData = null) {
   const domainData = await getDomainData(parsedDomain);
   const enabled = getEnabled(domainData, wellknownData);
-  console.log(domainData, enabled);
   document.getElementById("slider-domain").checked = enabled;
 }
 
