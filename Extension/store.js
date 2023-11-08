@@ -51,7 +51,7 @@ export function getDisableDomains() {
     const domains = [];
     const request = openDB();
 
-    request.onerror = (event) => {
+    request.onerror = () => {
       reject();
     };
 
@@ -82,7 +82,7 @@ export async function getDomainData(parsedDomain) {
   return new Promise((resolve, reject) => {
     const request = openDB();
 
-    request.onerror = (event) => {
+    request.onerror = () => {
       reject();
     };
     request.onsuccess = function (event) {
@@ -91,7 +91,7 @@ export async function getDomainData(parsedDomain) {
       const objectStore = transaction.objectStore("domains");
 
       const request_get = objectStore.get(parsedDomain);
-      request_get.onerror = (event) => {
+      request_get.onerror = () => {
         reject();
       };
       request_get.onsuccess = (event) => {

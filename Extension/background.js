@@ -6,44 +6,27 @@ initDB();
 let memoryDatabase = [];
 let extensionDisabled = false;
 
-chrome.runtime.onInstalled.addListener(async function () {
-  const disable_domains = await getDisableDomains();
-  if (disable_domains) {
-    memoryDatabase = disable_domains;
-  }
-  // await chrome.scripting.registerContentScripts([
-  //   {
-  //     id: "1",
-  //     matches: ["<all_urls>"],
-  //     excludeMatches: [],
-  //     js: ["gpc-scripts/add-gpc-dom.js"],
-  //     runAt: "document_start",
-  //   },
-  // ]);
-  const extensionData = await getDomainData("meeExtension");
-  const enabledExtension = !extensionData || extensionData.enabled;
-  extensionDisabled = !enabledExtension;
-
-  if (!enabledExtension) {
-    // chrome.scripting.updateContentScripts([
-    //   {
-    //     id: "1",
-    //     matches: ["https://example.com/"],
-    //     excludeMatches: [],
-    //     js: ["gpc-scripts/add-gpc-dom.js"],
-    //     runAt: "document_start",
-    //   },
-    // ]);
-
-    await addDynamicRule(1, "*");
-  } else {
-    await addRulesForDisabledDomains();
-  }
-});
-
 async function toggleGPCHeaders(id, domain, mode = "enable") {
   const allResourceTypes = Object.values(chrome.declarativeNetRequest.ResourceType);
-  console.log(id, domain);
+
+  const headers =
+    mode === "remove"
+      ? [
+          {
+            header: "Sec-GPC",
+            operation: "remove",
+          },
+          { header: "DNT", operation: "remove" },
+        ]
+      : [
+          {
+            header: "Sec-GPC",
+            operation: "set",
+            value: mode === "enable" ? "1" : "0",
+          },
+          { header: "DNT", operation: "set", value: mode === "enable" ? "1" : "0" },
+        ];
+
   let UpdateRuleOptions = {
     addRules: [
       {
@@ -51,10 +34,7 @@ async function toggleGPCHeaders(id, domain, mode = "enable") {
         priority: 2,
         action: {
           type: "modifyHeaders",
-          requestHeaders: [
-            { header: "Sec-GPC", operation: "set", value: mode === "enable" ? "1" : "0" },
-            { header: "DNT", operation: "set", value: mode === "enable" ? "1" : "0" },
-          ],
+          requestHeaders: headers,
         },
         condition: {
           urlFilter: domain,
@@ -66,15 +46,15 @@ async function toggleGPCHeaders(id, domain, mode = "enable") {
   };
 
   await chrome.declarativeNetRequest.updateDynamicRules(UpdateRuleOptions);
-  console.log(`Rules has been ${mode}d`);
 }
 
 async function deleteAllDynamicRules() {
   const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
   const oldRuleIds = oldRules.map((rule) => rule.id);
 
-  await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: oldRuleIds });
-  console.log(`Rules has been removed`);
+  oldRuleIds.map(async (id) => {
+    toggleGPCHeaders(id, "*", "remove");
+  });
 }
 
 async function addRulesForDisabledDomains() {
@@ -84,8 +64,9 @@ async function addRulesForDisabledDomains() {
     memoryDatabase = disable_domains;
     let excludeMatches = [];
     for (let domain of disable_domains) {
-      await toggleGPCHeaders(id++, domain, "disable");
-      excludeMatches.push(`*://${domain}/*`);
+      const regDomain = `*://${domain}/*`;
+      await toggleGPCHeaders(id++, regDomain, "disable");
+      excludeMatches.push(regDomain);
     }
 
     // chrome.scripting.updateContentScripts([
@@ -123,6 +104,7 @@ function afterDownloadWellknown(message, sender) {
     enabled: true,
   });
 
+  // TODO: Check if we can just sendMessage without listener
   chrome.runtime.onMessage.addListener(function (message, _, __) {
     if (message.msg === "POPUP_LOADED") {
       chrome.runtime.sendMessage({
@@ -139,7 +121,7 @@ async function changeExtensionEnabled() {
   const enabledExtension = !extensionData || extensionData.enabled;
   extensionDisabled = !enabledExtension;
 
-  if (!enabledExtension) {
+  if (enabledExtension) {
     // chrome.scripting.updateContentScripts([
     //   {
     //     id: "1",
@@ -150,20 +132,21 @@ async function changeExtensionEnabled() {
     //   },
     // ]);
 
-    await addDynamicRule(1, "*");
-  } else {
+    await toggleGPCHeaders(1, "*");
     await addRulesForDisabledDomains();
+  } else {
+    await deleteAllDynamicRules();
   }
 }
 
 function onCheckEnabledMessageHandled(message, sendResponse) {
   const isEnabled = memoryDatabase.findIndex((domain) => domain === message.data) === -1 && !extensionDisabled;
-  sendResponse({ isEnabled: isEnabled });
+  sendResponse({ isEnabled });
 }
 
 function onAppCommunicationMessageHandled(message, sendResponse) {
   new Promise((resolve) => {
-    chrome.runtime.sendNativeMessage("Mee", { type: message.type, message: message.data }, function (response) {
+    chrome.runtime.sendNativeMessage("Mee", { type: message.type, message: message.data }, (response) => {
       resolve(response);
     });
   })
@@ -176,6 +159,38 @@ function onAppCommunicationMessageHandled(message, sendResponse) {
     });
 }
 
+chrome.runtime.onInstalled.addListener(async function () {
+  // await chrome.scripting.registerContentScripts([
+  //   {
+  //     id: "1",
+  //     matches: ["<all_urls>"],
+  //     excludeMatches: [],
+  //     js: ["gpc-scripts/add-gpc-dom.js"],
+  //     runAt: "document_start",
+  //   },
+  // ]);
+  const extensionData = await getDomainData("meeExtension");
+  const enabledExtension = !extensionData || extensionData.enabled;
+  extensionDisabled = !enabledExtension;
+
+  if (enabledExtension) {
+    // chrome.scripting.updateContentScripts([
+    //   {
+    //     id: "1",
+    //     matches: ["https://example.com/"],
+    //     excludeMatches: [],
+    //     js: ["gpc-scripts/add-gpc-dom.js"],
+    //     runAt: "document_start",
+    //   },
+    // ]);
+
+    await toggleGPCHeaders(1, "*");
+    await addRulesForDisabledDomains();
+  } else {
+    await deleteAllDynamicRules();
+  }
+});
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message.msg) {
     case "DOWNLOAD_WELLKNOWN": {
@@ -183,7 +198,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     }
     case "UPDATE_SELECTOR": {
-      deleteAllDynamicRules();
       toggleGPCHeaders(1, message.domain, message.mode);
       return true;
     }

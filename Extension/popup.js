@@ -73,7 +73,7 @@ document.getElementById("slider-domain").addEventListener("click", async (_) => 
   if (update_result) {
     chrome.runtime.sendMessage({
       msg: "UPDATE_SELECTOR",
-      mode: update_result.mode ? "enable" : "disable",
+      mode: update_result.isEnabled ? "enable" : "disable",
       domain: update_result.domain,
     });
     checkDomain(update_result.domain);
