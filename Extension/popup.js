@@ -23,23 +23,6 @@ async function checkEnabledExtension() {
   document.getElementById("domain-container").style.display = enabledExtension ? "flex" : "none";
 }
 
-async function checkSiteHasConnection() {
-  const parsedDomain = await getCurrentParsedDomain();
-  chrome.runtime
-    .sendMessage({
-      msg: "APP_COMMUNICATION",
-      type: "GET_DOMAIN_STATUS",
-      data: parsedDomain,
-    })
-    .then((response) => {
-      if (response?.hasConnection) {
-        document.getElementById("has-connection").innerHTML = " true";
-      } else {
-        document.getElementById("has-connection").innerHTML = " false";
-      }
-    });
-}
-
 chrome.runtime.onMessage.addListener(async function (message, _, __) {
   if (message.msg === "SEND_WELLKNOWN_TO_POPUP") {
     const parsedDomain = await getCurrentParsedDomain();
