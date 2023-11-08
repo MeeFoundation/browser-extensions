@@ -23,9 +23,9 @@ function setDom() {
         });
         document.currentScript.parentElement.removeChild(document.currentScript);
       `;
-      const script = document.createElement("script");
-      script.innerHTML = script_content;
-      document.documentElement.prepend(script);
+    const script = document.createElement("script");
+    script.innerHTML = script_content;
+    document.documentElement.prepend(script);
   } catch (err) {
     console.error(`Failed to set DOM signal: ${err}`);
   }
@@ -34,19 +34,28 @@ function setDom() {
 (() => {
   let url = new URL(location);
   getWellknown(url);
-  chrome.runtime.sendMessage({
-    msg: "CHECK_ENABLED",
-    data: url.hostname,
-  }).then((response) => {
-    if (response.isEnabled) {
-      setDom()
-    }
-  })  
-  chrome.runtime.sendMessage({
-    msg: "APP_COMMUNICATION",
-    type: "GET_DOMAIN_STATUS",
-    data: url.hostname,
-  }).then((response) => {
-    console.log(response)
-  })
+  chrome.runtime
+    .sendMessage({
+      msg: "CHECK_ENABLED",
+      data: url.hostname,
+    })
+    .then((response) => {
+      if (response.isEnabled) {
+        setDom();
+      }
+    });
+  chrome.runtime
+    .sendMessage({
+      msg: "APP_COMMUNICATION",
+      type: "GET_DOMAIN_STATUS",
+      data: url.hostname,
+    })
+    .then((response) => {
+      console.log(response);
+    });
+    chrome.runtime.onMessage.addListener((message) => {
+      if (message.msg === "ENABLE_DOM") {
+        setDom();
+      }
+    });
 })();

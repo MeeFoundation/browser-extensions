@@ -1,19 +1,32 @@
-import {
-  initDB,
-  addRowToDB,
-  getDisableDomains,
-  getDomainData,
-} from "./store.js";
-import { getBrowserInfo } from "./utils/browser.js";
+import { initDB, addRowToDB, getDisableDomains, getDomainData } from "./store.js";
+import { getDomainFromUrl } from "./utils/string";
 
 initDB();
 
 let memoryDatabase = [];
 let extensionDisabled = false;
-const browserInfo = getBrowserInfo();
 
-async function addDynamicRule(id, domain) {
+async function toggleGPCHeaders(id, domain, mode = "enable") {
   const allResourceTypes = Object.values(chrome.declarativeNetRequest.ResourceType);
+
+  const headers =
+    mode === "remove"
+      ? [
+          {
+            header: "Sec-GPC",
+            operation: "remove",
+          },
+          { header: "DNT", operation: "remove" },
+        ]
+      : [
+          {
+            header: "Sec-GPC",
+            operation: "set",
+            value: mode === "enable" ? "1" : "0",
+          },
+          { header: "DNT", operation: "set", value: mode === "enable" ? "1" : "0" },
+        ];
+
   let UpdateRuleOptions = {
     addRules: [
       {
@@ -21,10 +34,7 @@ async function addDynamicRule(id, domain) {
         priority: 2,
         action: {
           type: "modifyHeaders",
-          requestHeaders: [
-            { header: "Sec-GPC", operation: "remove" },
-            { header: "DNT", operation: "remove" },
-          ],
+          requestHeaders: headers,
         },
         condition: {
           urlFilter: domain,
@@ -39,9 +49,12 @@ async function addDynamicRule(id, domain) {
 }
 
 async function deleteAllDynamicRules() {
-  let MAX_RULES = chrome.declarativeNetRequest.MAX_NUMBER_OF_DYNAMIC_AND_SESSION_RULES;
-  let UpdateRuleOptions = { removeRuleIds: [...Array(MAX_RULES).keys()] };
-  await chrome.declarativeNetRequest.updateDynamicRules(UpdateRuleOptions);
+  const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
+  const oldRuleIds = oldRules.map((rule) => rule.id);
+
+  oldRuleIds.map(async (id) => {
+    toggleGPCHeaders(id, "*", "remove");
+  });
 }
 
 async function addRulesForDisabledDomains() {
@@ -51,8 +64,9 @@ async function addRulesForDisabledDomains() {
     memoryDatabase = disable_domains;
     let excludeMatches = [];
     for (let domain of disable_domains) {
-      await addDynamicRule(id++, domain);
-      excludeMatches.push(`*://${domain}/*`);
+      const regDomain = `*://${domain}/*`;
+      await toggleGPCHeaders(id++, regDomain, "disable");
+      excludeMatches.push(regDomain);
     }
 
     // chrome.scripting.updateContentScripts([
@@ -69,8 +83,7 @@ async function addRulesForDisabledDomains() {
 
 function afterDownloadWellknown(message, sender) {
   let tabID = sender.tab.id;
-  let url = new URL(sender.url);
-  let domain = url.hostname.replace("www.", "");
+  let domain = getDomainFromUrl(sender.url);
   let wellknown = [];
 
   wellknown[tabID] = message.data;
@@ -91,6 +104,7 @@ function afterDownloadWellknown(message, sender) {
     enabled: true,
   });
 
+  // TODO: Check if we can just sendMessage without listener
   chrome.runtime.onMessage.addListener(function (message, _, __) {
     if (message.msg === "POPUP_LOADED") {
       chrome.runtime.sendMessage({
@@ -107,7 +121,7 @@ async function changeExtensionEnabled() {
   const enabledExtension = !extensionData || extensionData.enabled;
   extensionDisabled = !enabledExtension;
 
-  if (!enabledExtension) {
+  if (enabledExtension) {
     // chrome.scripting.updateContentScripts([
     //   {
     //     id: "1",
@@ -117,71 +131,37 @@ async function changeExtensionEnabled() {
     //     runAt: "document_start",
     //   },
     // ]);
+    chrome.runtime.sendMessage({ msg: "ENABLE_DOM" });
 
-    await addDynamicRule(1, "*");
-  } else {
+    await toggleGPCHeaders(1, "*");
     await addRulesForDisabledDomains();
+  } else {
+    await deleteAllDynamicRules();
   }
 }
 
-function onCheckEnabledMessageHandled(message, sender, sendResponse) {
-  if (message.msg === "CHECK_ENABLED") {
-    const isEnabled = memoryDatabase.findIndex((domain) => domain === message.data) === -1 && !extensionDisabled;
-    sendResponse({ isEnabled: isEnabled });
-    return true;
-  }
+function onCheckEnabledMessageHandled(message, sendResponse) {
+  const isEnabled = memoryDatabase.findIndex((domain) => domain === message.data) === -1 && !extensionDisabled;
+
+  sendResponse({ isEnabled });
 }
 
-chrome.runtime.onMessage.addListener(onCheckEnabledMessageHandled);
-
-function onAppCommunicationMessageHandled(message, sender, sendResponse) {
-  if (message.msg === "APP_COMMUNICATION" && browserInfo !== "Firefox Mobile") {
-    new Promise((resolve, reject) => {
-      chrome.runtime.sendNativeMessage("Mee", { type: message.type, message: message.data }, function (response) {
-        resolve(response);
-      });
+function onAppCommunicationMessageHandled(message, sendResponse) {
+  new Promise((resolve) => {
+    chrome.runtime.sendNativeMessage("Mee", { type: message.type, message: message.data }, (response) => {
+      resolve(response);
+    });
+  })
+    .then((response) => {
+      sendResponse(response);
     })
-      .then((response) => {
-        sendResponse(response);
-        return true;
-      })
-      .catch((e) => {
-        console.log("error: ", e);
-        sendResponse(e);
-        return true;
-      });
-
-      return true;
-  }
+    .catch((e) => {
+      console.log("error: ", e);
+      sendResponse(e);
+    });
 }
-
-chrome.runtime.onMessage.addListener(onAppCommunicationMessageHandled);
-
-function onMessageHandlerAsync(message, sender) {
-  switch (message.msg) {
-    case "DOWNLOAD_WELLKNOWN": {
-      afterDownloadWellknown(message, sender);
-      return true;
-    }
-    case "UPDATE_SELECTOR": {
-      deleteAllDynamicRules();
-      addRulesForDisabledDomains();
-      return true;
-    }
-    case "UPDATE_ENABLED": {
-      changeExtensionEnabled();
-      return true;
-    }
-  }
-}
-
-chrome.runtime.onMessage.addListener(onMessageHandlerAsync);
 
 chrome.runtime.onInstalled.addListener(async function () {
-  const disable_domains = await getDisableDomains();
-  if (disable_domains) {
-    memoryDatabase = disable_domains;
-  }
   // await chrome.scripting.registerContentScripts([
   //   {
   //     id: "1",
@@ -195,7 +175,7 @@ chrome.runtime.onInstalled.addListener(async function () {
   const enabledExtension = !extensionData || extensionData.enabled;
   extensionDisabled = !enabledExtension;
 
-  if (!enabledExtension) {
+  if (enabledExtension) {
     // chrome.scripting.updateContentScripts([
     //   {
     //     id: "1",
@@ -206,8 +186,37 @@ chrome.runtime.onInstalled.addListener(async function () {
     //   },
     // ]);
 
-    await addDynamicRule(1, "*");
-  } else {
+    await toggleGPCHeaders(1, "*");
     await addRulesForDisabledDomains();
+  } else {
+    await deleteAllDynamicRules();
+  }
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  switch (message.msg) {
+    case "DOWNLOAD_WELLKNOWN": {
+      afterDownloadWellknown(message, sender);
+      return true;
+    }
+    case "UPDATE_SELECTOR": {
+      toggleGPCHeaders(1, message.domain, message.mode);
+      return true;
+    }
+    case "UPDATE_ENABLED": {
+      changeExtensionEnabled();
+      return true;
+    }
+    case "APP_COMMUNICATION": {
+      onAppCommunicationMessageHandled(message, sendResponse);
+      return true;
+    }
+    case "CHECK_ENABLED": {
+      onCheckEnabledMessageHandled(message, sendResponse);
+      return true;
+    }
+    default: {
+      return false;
+    }
   }
 });
