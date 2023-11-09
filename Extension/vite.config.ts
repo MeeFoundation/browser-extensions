@@ -2,8 +2,11 @@ import { resolve } from "path";
 import { defineConfig } from "vite";
 import { viteStaticCopy, Target } from "vite-plugin-static-copy";
 
+
 const popup_inputs = [resolve(__dirname, "./popup.js")];
 const background_inputs = [resolve(__dirname, "./background.js"), resolve(__dirname, "./content.js")];
+
+const isPopupBuild = process.env.APP_FILE === "popup";
 
 const target = process.env.APP_BROWSER || "chrome";
 const isSafari = target === "safari";
@@ -55,15 +58,15 @@ const outDir = isSafari
 
 export default defineConfig({
   build: {
-    emptyOutDir: true,
+    emptyOutDir: !isPopupBuild ? true : false,
     outDir: outDir,
     minify: "terser",
-    sourcemap: true,
+    sourcemap: false,
     commonjsOptions: {
       include: [],
     },
     rollupOptions: {
-      input: [...popup_inputs, ...background_inputs],
+      input: isPopupBuild ? popup_inputs : background_inputs,
       output: {
         entryFileNames({ name }) {
           return `${name}.js`;
@@ -73,7 +76,8 @@ export default defineConfig({
   },
   plugins: [
     viteStaticCopy({
-      targets: copy_targets,
+      targets: isPopupBuild ? [] : copy_targets,
     }),
   ],
 });
+
