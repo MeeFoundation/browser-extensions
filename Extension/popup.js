@@ -45,7 +45,6 @@ document.addEventListener("DOMContentLoaded", async (_) => {
 
   await checkDomain(parsedDomain);
   await checkEnabledExtension();
-  await checkSiteHasConnection();
 });
 
 document.getElementById("slider-domain").addEventListener("click", async (_) => {

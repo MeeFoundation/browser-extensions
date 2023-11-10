@@ -13,24 +13,6 @@ async function getWellknown(url) {
   });
 }
 
-function setDom() {
-  try {
-    const script_content = `
-        Object.defineProperty(Navigator.prototype, "globalPrivacyControl", {
-          get: () => true,
-          configurable: true,
-          enumerable: true
-        });
-        document.currentScript.parentElement.removeChild(document.currentScript);
-      `;
-    const script = document.createElement("script");
-    script.innerHTML = script_content;
-    document.documentElement.prepend(script);
-  } catch (err) {
-    console.error(`Failed to set DOM signal: ${err}`);
-  }
-}
-
 (() => {
   let url = new URL(location);
   getWellknown(url);
@@ -52,10 +34,5 @@ function setDom() {
     })
     .then((response) => {
       console.log(response);
-    });
-    chrome.runtime.onMessage.addListener((message) => {
-      if (message.msg === "ENABLE_DOM") {
-        setDom();
-      }
     });
 })();

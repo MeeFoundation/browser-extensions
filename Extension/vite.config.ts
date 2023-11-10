@@ -8,7 +8,7 @@ const background_inputs = [resolve(__dirname, "./background.js"), resolve(__dirn
 
 const isPopupBuild = process.env.APP_FILE === "popup";
 
-const target = process.env.APP_BROWSER || "chrome";
+const target = process.env.VITE_BROWSER || "chrome";
 const isSafari = target === "safari";
 const isFirefox = target === "firefox";
 
@@ -61,7 +61,7 @@ export default defineConfig({
     emptyOutDir: !isPopupBuild ? true : false,
     outDir: outDir,
     minify: "terser",
-    sourcemap: false,
+    sourcemap: true,
     commonjsOptions: {
       include: [],
     },
