@@ -227,8 +227,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     }
     case "APP_COMMUNICATION": {
-      onAppCommunicationMessageHandled(message, sendResponse);
-      return true;
+      if (import.meta.env.VITE_BROWSER === "safari") {
+        onAppCommunicationMessageHandled(message, sendResponse);
+        return true;
+      }
     }
     case "CHECK_ENABLED": {
       onCheckEnabledMessageHandled(message, sendResponse);
