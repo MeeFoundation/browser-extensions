@@ -1,5 +1,5 @@
 export function openDB() {
-  return indexedDB.open("MeeExtensionDB", 7);
+  return indexedDB.open("MeeExtensionDB", 13);
 }
 
 export function initDB() {
@@ -52,7 +52,7 @@ export function getDisableDomains() {
     const request = openDB();
 
     request.onerror = () => {
-      reject();
+      reject("Error in openDB");
     };
 
     request.onsuccess = function (event) {
@@ -83,7 +83,7 @@ export async function getDomainData(parsedDomain) {
     const request = openDB();
 
     request.onerror = () => {
-      reject();
+      reject("Error in openDB");
     };
     request.onsuccess = function (event) {
       const db = event.target.result;
@@ -92,7 +92,7 @@ export async function getDomainData(parsedDomain) {
 
       const request_get = objectStore.get(parsedDomain);
       request_get.onerror = () => {
-        reject();
+        reject(`${parsedDomain} Result: has't been found`);
       };
       request_get.onsuccess = (event) => {
         resolve(event.target.result);
@@ -107,7 +107,7 @@ export async function changeEnableDomain(parsedDomain) {
   return new Promise((resolve, reject) => {
     const request = openDB();
     request.onerror = (event) => {
-      reject();
+      reject("Error in openDB");
     };
     request.onsuccess = function (event) {
       const db = event.target.result;
@@ -115,14 +115,13 @@ export async function changeEnableDomain(parsedDomain) {
       const objectStore = transaction.objectStore("domains");
       const request_get = objectStore.get(parsedDomain);
       request_get.onerror = (event) => {
-      console.log(`${parsedDomain} Result: has't been found`);
         db.close();
-        reject();
+        reject(`${parsedDomain} Result: has't been found`);
       };
 
       request_get.onsuccess = (event) => {
         const old_data = event.target.result;
-        
+
         const new_data = {
           domain: parsedDomain,
           wellknown: old_data ? old_data.wellknown : false,
@@ -131,7 +130,7 @@ export async function changeEnableDomain(parsedDomain) {
         const requestUpdate = objectStore.put(new_data);
         requestUpdate.onerror = (event) => {
           db.close();
-          reject();
+          reject("Error with put data");
         };
         requestUpdate.onsuccess = (event) => {
           db.close();

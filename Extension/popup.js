@@ -7,14 +7,24 @@ function getEnabled(domainData, wellknownData = null) {
 }
 
 async function checkDomain(parsedDomain, wellknownData = null) {
-  const domainData = await getDomainData(parsedDomain);
-  const enabled = getEnabled(domainData, wellknownData);
-  document.getElementById("slider-domain").checked = enabled;
+  try {
+    const domainData = await getDomainData(parsedDomain);
+    const enabled = getEnabled(domainData, wellknownData);
+    document.getElementById("slider-domain").checked = enabled;
+  } catch (error) {
+    console.log(error);
+    document.getElementById("slider-domain").checked = false;
+  }
 }
 
 async function isExtensionEnabled() {
-  const extensionData = await getDomainData("meeExtension");
-  return !extensionData || extensionData.enabled;
+  try {
+    const extensionData = await getDomainData("meeExtension");
+    return !extensionData || extensionData.enabled;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
 }
 
 async function checkEnabledExtension() {
