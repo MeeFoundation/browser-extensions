@@ -13,6 +13,26 @@ async function getWellknown(url) {
   });
 }
 
+const setDom = () => {
+  if (import.meta.env.VITE_BROWSER === "safari") {
+    try {
+      const script_content = `
+        Object.defineProperty(Navigator.prototype, "globalPrivacyControl", {
+          get: () => true,
+          configurable: true,
+          enumerable: true
+        });
+        document.currentScript.parentElement.removeChild(document.currentScript);
+      `;
+      const script = document.createElement("script");
+      script.innerHTML = script_content;
+      document.documentElement.prepend(script);
+    } catch (err) {
+      console.error(`Failed to set DOM signal: ${err}`);
+    }
+  }
+};
+
 (() => {
   let url = new URL(location);
   getWellknown(url);
@@ -22,9 +42,10 @@ async function getWellknown(url) {
       data: url.hostname,
     })
     .then((response) => {
-      if (response.isEnabled) {
-        setDom();
-      }
+      if (import.meta.env.VITE_BROWSER === "safari")
+        if (response.isEnabled) {
+          // setDom();
+        }
     });
   chrome.runtime
     .sendMessage({

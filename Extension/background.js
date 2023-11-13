@@ -7,7 +7,27 @@ let memoryDatabase = [];
 let extensionDisabled = false;
 
 async function toggleGPCHeaders(id, domain, mode = "enable") {
-  const allResourceTypes = Object.values(chrome.declarativeNetRequest.ResourceType);
+  // Safari doesn't give all Resources from type, so we need writing this array by hand
+  const allResourceTypes =
+    import.meta.env.VITE_BROWSER === "safari"
+      ? [
+          "csp_report",
+          "font",
+          "image",
+          "main_frame",
+          "media",
+          "object",
+          "other",
+          "ping",
+          "script",
+          "stylesheet",
+          "sub_frame",
+          "webbundle",
+          "websocket",
+          "webtransport",
+          "xmlhttprequest",
+        ]
+      : Object.values(chrome.declarativeNetRequest.ResourceType);
 
   const headers =
     mode === "remove"
