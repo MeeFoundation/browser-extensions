@@ -11,20 +11,15 @@ async function toggleGPCHeaders(id, domain, mode = "enable") {
   const allResourceTypes =
     import.meta.env.VITE_BROWSER === "safari"
       ? [
-          "csp_report",
           "font",
           "image",
           "main_frame",
           "media",
-          "object",
-          "other",
           "ping",
           "script",
           "stylesheet",
           "sub_frame",
-          "webbundle",
           "websocket",
-          "webtransport",
           "xmlhttprequest",
         ]
       : Object.values(chrome.declarativeNetRequest.ResourceType);
