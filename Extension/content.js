@@ -13,12 +13,12 @@ async function getWellknown(url) {
   });
 }
 
-const setDom = () => {
+const setDom = (state = true) => {
   if (import.meta.env.VITE_BROWSER === "safari") {
     try {
       const script_content = `
         Object.defineProperty(Navigator.prototype, "globalPrivacyControl", {
-          get: () => true,
+          get: () => ${state},
           configurable: true,
           enumerable: true
         });
@@ -36,17 +36,18 @@ const setDom = () => {
 (() => {
   let url = new URL(location);
   getWellknown(url);
-  chrome.runtime
-    .sendMessage({
-      msg: "CHECK_ENABLED",
-      data: url.hostname,
-    })
-    .then((response) => {
-      if (import.meta.env.VITE_BROWSER === "safari")
-        if (response.isEnabled) {
-          // setDom();
-        }
-    });
+  chrome.runtime.sendMessage({
+    msg: "CHECK_ENABLED",
+    data: url.hostname,
+  });
+  // .then((response) => {
+  //   if (import.meta.env.VITE_BROWSER === "safari" && !navigator.hasOwnProperty("globalPrivacyControl"))
+  //     if (response.isEnabled) {
+  //       setDom(true);
+  //     } else {
+  //       setDom(false);
+  //     }
+  // });
   chrome.runtime
     .sendMessage({
       msg: "APP_COMMUNICATION",

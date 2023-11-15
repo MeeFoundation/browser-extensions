@@ -64,29 +64,37 @@ async function toggleGPCHeaders(id, domain, mode = "enable") {
 }
 
 async function enableNavigatorGPC(domains = ["<all_urls>"]) {
-  const disable_domains = await getDisableDomains();
-  await chrome.scripting.updateContentScripts([
-    {
-      id: "1",
-      matches: domains,
-      excludeMatches: getRegDomains(disable_domains),
-      js: ["gpc-scripts/add-gpc-dom.js"],
-      runAt: "document_start",
-    },
-  ]);
+  try {
+    const disable_domains = await getDisableDomains();
+    await chrome.scripting.updateContentScripts([
+      {
+        id: "1",
+        matches: domains,
+        excludeMatches: getRegDomains(disable_domains),
+        js: ["gpc-scripts/add-gpc-dom.js"],
+        runAt: "document_start",
+      },
+    ]);
+  } catch (error) {
+    console.log(`failed to update content scripts: ${error}`);
+  }
 }
 
 async function disableNavigatorGPC() {
-  const disable_domains = await getDisableDomains();
-  await chrome.scripting.updateContentScripts([
-    {
-      id: "1",
-      matches: getRegDomains(disable_domains),
-      excludeMatches: [],
-      js: ["gpc-scripts/disable-gpc-dom.js"],
-      runAt: "document_start",
-    },
-  ]);
+  try {
+    const disable_domains = await getDisableDomains();
+    if (disable_domains.length > 0)
+      await chrome.scripting.updateContentScripts([
+        {
+          id: "1",
+          matches: getRegDomains(disable_domains),
+          js: ["gpc-scripts/disable-gpc-dom.js"],
+          runAt: "document_start",
+        },
+      ]);
+  } catch (error) {
+    console.log(`failed to update content scripts: ${error}`);
+  }
 }
 
 async function deleteAllDynamicRules() {
@@ -106,6 +114,37 @@ async function addRulesForDisabledDomains() {
     for (let domain of disable_domains) {
       await toggleGPCHeaders(id++, getRegDomain(domain), "disable");
     }
+  }
+}
+
+async function registerRules() {
+  try {
+    const disable_domains = await getDisableDomains();
+    await toggleGPCHeaders(1, "*");
+    await addRulesForDisabledDomains();
+    await chrome.scripting.registerContentScripts([
+      {
+        id: "1",
+        matches: ["<all_urls>"],
+        excludeMatches: getRegDomains(disable_domains),
+        js: ["gpc-scripts/add-gpc-dom.js"],
+        runAt: "document_start",
+      },
+    ]);
+    await disableNavigatorGPC();
+  } catch (error) {
+    console.log(`failed to register content scripts: ${error}`);
+  }
+}
+
+async function unregisterRules() {
+  try {
+    const scripts = await chrome.scripting.getRegisteredContentScripts();
+    const scriptIds = scripts.map((script) => script.id);
+    await deleteAllDynamicRules();
+    if (scriptIds.length) await chrome.scripting.unregisterContentScripts({ ids: scriptIds });
+  } catch (error) {
+    console.log(`failed to unregister content scripts: ${error}`);
   }
 }
 
@@ -143,7 +182,6 @@ function afterDownloadWellknown(message, sender) {
 }
 
 async function changeExtensionEnabled() {
-  const disable_domains = await getDisableDomains();
   const extensionData = await getDomainData("meeExtension");
   const enabledExtension = !extensionData || extensionData.enabled;
   extensionDisabled = !enabledExtension;
@@ -158,22 +196,9 @@ async function changeExtensionEnabled() {
     //   chrome.runtime.sendMessage({ msg: "ENABLE_DOM" });
     // }
 
-    await toggleGPCHeaders(1, "*");
-    await addRulesForDisabledDomains();
-
-    await chrome.scripting.registerContentScripts([
-      {
-        id: "1",
-        matches: ["<all_urls>"],
-        excludeMatches: getRegDomains(disable_domains),
-        js: ["gpc-scripts/add-gpc-dom.js"],
-        runAt: "document_start",
-      },
-    ]);
-    await disableNavigatorGPC();
+    await registerRules();
   } else {
-    await deleteAllDynamicRules();
-    await chrome.scripting.unregisterContentScripts({ ids: ["1"] });
+    await unregisterRules();
   }
 }
 
@@ -199,27 +224,7 @@ function onAppCommunicationMessageHandled(message, sendResponse) {
 }
 
 chrome.runtime.onInstalled.addListener(async function () {
-  const extensionData = await getDomainData("meeExtension");
-  const disable_domains = await getDisableDomains();
-  const enabledExtension = !extensionData || extensionData.enabled;
-  extensionDisabled = !enabledExtension;
-
-  if (enabledExtension) {
-    await chrome.scripting.registerContentScripts([
-      {
-        id: "1",
-        matches: ["<all_urls>"],
-        excludeMatches: getRegDomains(disable_domains),
-        js: ["gpc-scripts/add-gpc-dom.js"],
-        runAt: "document_start",
-      },
-    ]);
-    await toggleGPCHeaders(1, "*");
-    await addRulesForDisabledDomains();
-  } else {
-    await chrome.scripting.unregisterContentScripts(["1"]);
-    await deleteAllDynamicRules();
-  }
+  await changeExtensionEnabled();
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

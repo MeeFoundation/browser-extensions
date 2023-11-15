@@ -8,6 +8,6 @@ export const getRegDomain = (domain) => {
 };
 
 export const getRegDomains = (domains) => {
-  if (!domains) return [];
+  if (!domains) return undefined;
   return domains.map((d) => getRegDomain(d));
 };
