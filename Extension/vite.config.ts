@@ -60,7 +60,7 @@ export default defineConfig({
   build: {
     emptyOutDir: !isPopupBuild ? true : false,
     outDir: outDir,
-    minify: "terser",
+    minify: false,
     sourcemap: true,
     commonjsOptions: {
       include: [],
