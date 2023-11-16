@@ -3,9 +3,6 @@ import { getDomainFromUrl, getRegDomain, getRegDomains } from "./utils/string";
 
 initDB();
 
-let memoryDatabase = [];
-let extensionDisabled = false;
-
 async function toggleGPCHeaders(id, domain, mode = "enable") {
   // Safari doesn't give all Resources from type, so we need writing this array by hand
   const allResourceTypes =
@@ -110,7 +107,6 @@ async function addRulesForDisabledDomains() {
   let id = 1;
   const disable_domains = await getDisableDomains();
   if (disable_domains) {
-    memoryDatabase = disable_domains;
     for (let domain of disable_domains) {
       await toggleGPCHeaders(id++, getRegDomain(domain), "disable");
     }
@@ -181,10 +177,14 @@ function afterDownloadWellknown(message, sender) {
   });
 }
 
-async function changeExtensionEnabled() {
+async function checkEnabledExtension() {
   const extensionData = await getDomainData("meeExtension");
-  const enabledExtension = !extensionData || extensionData.enabled;
-  extensionDisabled = !enabledExtension;
+  return !extensionData || extensionData.enabled;
+}
+
+async function changeExtensionEnabled() {
+  const enabledExtension = await checkEnabledExtension();
+  console.log("enabled ext", enabledExtension);
 
   if (enabledExtension) {
     // if (import.meta.env.VITE_BROWSER !== "firefox") {
@@ -202,8 +202,10 @@ async function changeExtensionEnabled() {
   }
 }
 
-function onCheckEnabledMessageHandled(message, sendResponse) {
-  const isEnabled = memoryDatabase.findIndex((domain) => domain === message.data) === -1 && !extensionDisabled;
+async function onCheckEnabledMessageHandled(message, sendResponse) {
+  const enabledExtension = await checkEnabledExtension();
+  const disable_domains = await getDisableDomains();
+  const isEnabled = !disable_domains.includes(message.data) && !enabledExtension;
 
   sendResponse({ isEnabled });
 }

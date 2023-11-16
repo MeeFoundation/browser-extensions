@@ -1,5 +1,5 @@
 export function openDB() {
-  return indexedDB.open("MeeExtensionDB", 13);
+  return indexedDB.open("MeeExtensionDB", 8528);
 }
 
 export function initDB() {
