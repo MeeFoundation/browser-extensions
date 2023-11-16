@@ -205,8 +205,7 @@ async function changeExtensionEnabled() {
 async function onCheckEnabledMessageHandled(message, sendResponse) {
   const enabledExtension = await checkEnabledExtension();
   const disable_domains = await getDisableDomains();
-  const isEnabled = !disable_domains.includes(message.data) && !enabledExtension;
-
+  const isEnabled = !disable_domains.includes(message.data) && enabledExtension;
   sendResponse({ isEnabled });
 }
 

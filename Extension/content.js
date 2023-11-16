@@ -36,18 +36,22 @@ const setDom = (state = true) => {
 (() => {
   let url = new URL(location);
   getWellknown(url);
-  chrome.runtime.sendMessage({
-    msg: "CHECK_ENABLED",
-    data: url.hostname,
-  });
-  // .then((response) => {
-  //   if (import.meta.env.VITE_BROWSER === "safari" && !navigator.hasOwnProperty("globalPrivacyControl"))
-  //     if (response.isEnabled) {
-  //       setDom(true);
-  //     } else {
-  //       setDom(false);
-  //     }
-  // });
+  chrome.runtime
+    .sendMessage({
+      msg: "CHECK_ENABLED",
+      data: url.hostname,
+    })
+    .then((response) => {
+      const iOSVersion = /(iPhone|iPad) OS ([1-9]*)/g.exec(window.navigator.userAgent)?.[2];
+      if (import.meta.env.VITE_BROWSER === "safari" && iOSVersion < 17) {
+        console.log("🚀 ~ file: content.js:46 ~ .then ~ iOSVersion:", iOSVersion);
+        if (response.isEnabled) {
+          setDom(true);
+        } else {
+          setDom(false);
+        }
+      }
+    });
   chrome.runtime
     .sendMessage({
       msg: "APP_COMMUNICATION",
