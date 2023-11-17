@@ -13,23 +13,25 @@ async function getWellknown(url) {
   });
 }
 
-function setDom() {
-  try {
-    const script_content = `
+const setDom = (state = true) => {
+  if (import.meta.env.VITE_BROWSER === "safari") {
+    try {
+      const script_content = `
         Object.defineProperty(Navigator.prototype, "globalPrivacyControl", {
-          get: () => true,
+          get: () => ${state},
           configurable: true,
           enumerable: true
         });
         document.currentScript.parentElement.removeChild(document.currentScript);
       `;
-    const script = document.createElement("script");
-    script.innerHTML = script_content;
-    document.documentElement.prepend(script);
-  } catch (err) {
-    console.error(`Failed to set DOM signal: ${err}`);
+      const script = document.createElement("script");
+      script.innerHTML = script_content;
+      document.documentElement.prepend(script);
+    } catch (err) {
+      console.error(`Failed to set DOM signal: ${err}`);
+    }
   }
-}
+};
 
 (() => {
   let url = new URL(location);
@@ -40,8 +42,14 @@ function setDom() {
       data: url.hostname,
     })
     .then((response) => {
-      if (response.isEnabled) {
-        setDom();
+      const iOSVersion = /(iPhone|iPad) OS ([1-9]*)/g.exec(window.navigator.userAgent)?.[2];
+      if (import.meta.env.VITE_BROWSER === "safari" && iOSVersion < 17) {
+        console.log("🚀 ~ file: content.js:46 ~ .then ~ iOSVersion:", iOSVersion);
+        if (response.isEnabled) {
+          setDom(true);
+        } else {
+          setDom(false);
+        }
       }
     });
   chrome.runtime
@@ -52,10 +60,5 @@ function setDom() {
     })
     .then((response) => {
       console.log(response);
-    });
-    chrome.runtime.onMessage.addListener((message) => {
-      if (message.msg === "ENABLE_DOM") {
-        setDom();
-      }
     });
 })();

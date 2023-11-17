@@ -8,9 +8,10 @@ const background_inputs = [resolve(__dirname, "./background.js"), resolve(__dirn
 
 const isPopupBuild = process.env.APP_FILE === "popup";
 
-const target = process.env.APP_BROWSER || "chrome";
+const target = process.env.VITE_BROWSER || "chrome";
 const isSafari = target === "safari";
 const isFirefox = target === "firefox";
+const isFirefoxAndroid = target === "firefox-android";
 
 const manifestFile = `manifest.${target}.json`;
 
@@ -50,18 +51,17 @@ const copy_targets: Target[] = [
   },
 ];
 
-const outDir = isSafari
-  ? "../MeeExtensionMac/Shared (Extension)/Resources"
-  : isFirefox
-  ? "dist/firefox"
-  : "dist/chrome";
+let outDir = "dist/chrome";
+if (isSafari) outDir = "../MeeExtensionMac/Shared (Extension)/Resources";
+if (isFirefox) outDir = "dist/firefox";
+if (isFirefoxAndroid) outDir = "dist/firefox-android";
 
 export default defineConfig({
   build: {
     emptyOutDir: !isPopupBuild ? true : false,
     outDir: outDir,
-    minify: "terser",
-    sourcemap: false,
+    minify: false,
+    sourcemap: true,
     commonjsOptions: {
       include: [],
     },

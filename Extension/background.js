@@ -1,13 +1,25 @@
 import { initDB, addRowToDB, getDisableDomains, getDomainData } from "./store.js";
-import { getDomainFromUrl } from "./utils/string";
+import { getDomainFromUrl, getRegDomain, getRegDomains } from "./utils/string";
 
 initDB();
 
-let memoryDatabase = [];
-let extensionDisabled = false;
-
 async function toggleGPCHeaders(id, domain, mode = "enable") {
-  const allResourceTypes = Object.values(chrome.declarativeNetRequest.ResourceType);
+  // Safari doesn't give all Resources from type, so we need writing this array by hand
+  const allResourceTypes =
+    import.meta.env.VITE_BROWSER === "safari"
+      ? [
+          "font",
+          "image",
+          "main_frame",
+          "media",
+          "ping",
+          "script",
+          "stylesheet",
+          "sub_frame",
+          "websocket",
+          "xmlhttprequest",
+        ]
+      : Object.values(chrome.declarativeNetRequest.ResourceType);
 
   const headers =
     mode === "remove"
@@ -48,6 +60,40 @@ async function toggleGPCHeaders(id, domain, mode = "enable") {
   await chrome.declarativeNetRequest.updateDynamicRules(UpdateRuleOptions);
 }
 
+async function enableNavigatorGPC(domains = ["<all_urls>"]) {
+  try {
+    const disable_domains = await getDisableDomains();
+    await chrome.scripting.updateContentScripts([
+      {
+        id: "1",
+        matches: domains,
+        excludeMatches: getRegDomains(disable_domains),
+        js: ["gpc-scripts/add-gpc-dom.js"],
+        runAt: "document_start",
+      },
+    ]);
+  } catch (error) {
+    console.log(`failed to update content scripts: ${error}`);
+  }
+}
+
+async function disableNavigatorGPC() {
+  try {
+    const disable_domains = await getDisableDomains();
+    if (disable_domains.length > 0)
+      await chrome.scripting.updateContentScripts([
+        {
+          id: "1",
+          matches: getRegDomains(disable_domains),
+          js: ["gpc-scripts/disable-gpc-dom.js"],
+          runAt: "document_start",
+        },
+      ]);
+  } catch (error) {
+    console.log(`failed to update content scripts: ${error}`);
+  }
+}
+
 async function deleteAllDynamicRules() {
   const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
   const oldRuleIds = oldRules.map((rule) => rule.id);
@@ -61,23 +107,40 @@ async function addRulesForDisabledDomains() {
   let id = 1;
   const disable_domains = await getDisableDomains();
   if (disable_domains) {
-    memoryDatabase = disable_domains;
-    let excludeMatches = [];
     for (let domain of disable_domains) {
-      const regDomain = `*://${domain}/*`;
-      await toggleGPCHeaders(id++, regDomain, "disable");
-      excludeMatches.push(regDomain);
+      await toggleGPCHeaders(id++, getRegDomain(domain), "disable");
     }
+  }
+}
 
-    // chrome.scripting.updateContentScripts([
-    //   {
-    //     id: "1",
-    //     matches: ["<all_urls>"],
-    //     excludeMatches: excludeMatches,
-    //     js: ["gpc-scripts/add-gpc-dom.js"],
-    //     runAt: "document_start",
-    //   },
-    // ]);
+async function registerRules() {
+  try {
+    const disable_domains = await getDisableDomains();
+    await toggleGPCHeaders(1, "*");
+    await addRulesForDisabledDomains();
+    await chrome.scripting.registerContentScripts([
+      {
+        id: "1",
+        matches: ["<all_urls>"],
+        excludeMatches: getRegDomains(disable_domains),
+        js: ["gpc-scripts/add-gpc-dom.js"],
+        runAt: "document_start",
+      },
+    ]);
+    await disableNavigatorGPC();
+  } catch (error) {
+    console.log(`failed to register content scripts: ${error}`);
+  }
+}
+
+async function unregisterRules() {
+  try {
+    const scripts = await chrome.scripting.getRegisteredContentScripts();
+    const scriptIds = scripts.map((script) => script.id);
+    await deleteAllDynamicRules();
+    if (scriptIds.length) await chrome.scripting.unregisterContentScripts({ ids: scriptIds });
+  } catch (error) {
+    console.log(`failed to unregister content scripts: ${error}`);
   }
 }
 
@@ -104,8 +167,7 @@ function afterDownloadWellknown(message, sender) {
     enabled: true,
   });
 
-  // TODO: Check if we can just sendMessage without listener
-  chrome.runtime.onMessage.addListener(function (message, _, __) {
+  chrome.runtime.onMessage.addListener((message) => {
     if (message.msg === "POPUP_LOADED") {
       chrome.runtime.sendMessage({
         msg: "SEND_WELLKNOWN_TO_POPUP",
@@ -115,34 +177,35 @@ function afterDownloadWellknown(message, sender) {
   });
 }
 
-async function changeExtensionEnabled() {
-  await deleteAllDynamicRules();
+async function checkEnabledExtension() {
   const extensionData = await getDomainData("meeExtension");
-  const enabledExtension = !extensionData || extensionData.enabled;
-  extensionDisabled = !enabledExtension;
+  return !extensionData || extensionData.enabled;
+}
+
+async function changeExtensionEnabled() {
+  const enabledExtension = await checkEnabledExtension();
+  console.log("enabled ext", enabledExtension);
 
   if (enabledExtension) {
-    // chrome.scripting.updateContentScripts([
-    //   {
-    //     id: "1",
-    //     matches: ["https://example.com/"],
-    //     excludeMatches: [],
-    //     js: ["gpc-scripts/add-gpc-dom.js"],
-    //     runAt: "document_start",
-    //   },
-    // ]);
-    chrome.runtime.sendMessage({ msg: "ENABLE_DOM" });
+    // if (import.meta.env.VITE_BROWSER !== "firefox") {
+    //   console.log("On chrome");
+    //   await addGPCToNavigator();
+    // }
+    // if (import.meta.env.VITE_BROWSER === "firefox") {
+    //   console.log("On ff");
+    //   chrome.runtime.sendMessage({ msg: "ENABLE_DOM" });
+    // }
 
-    await toggleGPCHeaders(1, "*");
-    await addRulesForDisabledDomains();
+    await registerRules();
   } else {
-    await deleteAllDynamicRules();
+    await unregisterRules();
   }
 }
 
-function onCheckEnabledMessageHandled(message, sendResponse) {
-  const isEnabled = memoryDatabase.findIndex((domain) => domain === message.data) === -1 && !extensionDisabled;
-
+async function onCheckEnabledMessageHandled(message, sendResponse) {
+  const enabledExtension = await checkEnabledExtension();
+  const disable_domains = await getDisableDomains();
+  const isEnabled = !disable_domains.includes(message.data) && enabledExtension;
   sendResponse({ isEnabled });
 }
 
@@ -162,35 +225,7 @@ function onAppCommunicationMessageHandled(message, sendResponse) {
 }
 
 chrome.runtime.onInstalled.addListener(async function () {
-  // await chrome.scripting.registerContentScripts([
-  //   {
-  //     id: "1",
-  //     matches: ["<all_urls>"],
-  //     excludeMatches: [],
-  //     js: ["gpc-scripts/add-gpc-dom.js"],
-  //     runAt: "document_start",
-  //   },
-  // ]);
-  const extensionData = await getDomainData("meeExtension");
-  const enabledExtension = !extensionData || extensionData.enabled;
-  extensionDisabled = !enabledExtension;
-
-  if (enabledExtension) {
-    // chrome.scripting.updateContentScripts([
-    //   {
-    //     id: "1",
-    //     matches: ["https://example.com/"],
-    //     excludeMatches: [],
-    //     js: ["gpc-scripts/add-gpc-dom.js"],
-    //     runAt: "document_start",
-    //   },
-    // ]);
-
-    await toggleGPCHeaders(1, "*");
-    await addRulesForDisabledDomains();
-  } else {
-    await deleteAllDynamicRules();
-  }
+  await changeExtensionEnabled();
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -200,6 +235,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     }
     case "UPDATE_SELECTOR": {
+      if (message.mode === "enable") {
+        enableNavigatorGPC();
+      } else {
+        disableNavigatorGPC();
+      }
       toggleGPCHeaders(1, message.domain, message.mode);
       return true;
     }
@@ -208,8 +248,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     }
     case "APP_COMMUNICATION": {
-      onAppCommunicationMessageHandled(message, sendResponse);
-      return true;
+      if (import.meta.env.VITE_BROWSER === "safari") {
+        onAppCommunicationMessageHandled(message, sendResponse);
+        return true;
+      }
     }
     case "CHECK_ENABLED": {
       onCheckEnabledMessageHandled(message, sendResponse);

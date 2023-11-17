@@ -56,7 +56,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["gpc-scripts/gpc-dom.js"],
+      "resources": ["gpc-scripts/gpc-dom.js", "gpc-scripts/gpc-dom-disable.js"],
       "matches": ["<all_urls>"]
     }
   ],
