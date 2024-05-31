@@ -1,0 +1,104 @@
+<div class="mee-extension-container" id="mee-extension-container">
+  <div class="content">
+    <div class="title">
+      <strong>Mee Extension</strong>
+      <div class="close-icon" id="close-mee-extension-container">
+        <svg
+          class="Bz112c Bz112c-r9oPif"
+          xmlns="https://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="#5f6368"
+        >
+          <path
+            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+          ></path>
+          <path fill="none" d="M0 0h24v24H0z"></path>
+        </svg>
+      </div>
+    </div>
+    <div class="container">
+      <button id="open-popup">Connect with Mee</button>
+    </div>
+  </div>
+</div>
+<style>
+  .mee-extension-container.hidden {
+    display: none;
+  }
+  .mee-extension-container {
+    min-width: 250px;
+    padding: 20px;
+    border-radius: 0.75rem;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-items: center;
+    position: fixed;
+    z-index: 2147483687;
+    right: 20px;
+    top: 20px;
+    /* width: 391px; */
+    border-color: rgb(79 134 142);
+    border-width: 1px;
+    border-style: solid;
+  }
+  .mee-extension-container .title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    color: #1e293b;
+  }
+  .mee-extension-container .close-icon {
+    height: 20px;
+    width: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+  .mee-extension-container .content {
+    font-family: system-ui;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-items: center;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .mee-extension-container .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #1e293b;
+    gap: 16px;
+  }
+
+  .mee-extension-container button {
+    box-sizing: border-box;
+    display: flex;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    flex-direction: row;
+    flex: none;
+    flex-grow: 0;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0.75rem;
+    border-width: 1px;
+    border-style: solid;
+    width: 100%;
+    height: 2.75rem;
+    background: linear-gradient(92.42deg, #3b5b63 0%, #4f868e 100%);
+    color: #ffffff;
+    border-color: #436e77;
+    cursor: pointer;
+  }
+  
+</style>
