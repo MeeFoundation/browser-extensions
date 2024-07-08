@@ -109,6 +109,43 @@ body {
   justify-content: center;
 }
 
+#alert-container {
+  display: none;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 16px 16px 0px;
+}
+
+#alert-container.active {
+  display: flex;
+}
+
+.alert {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 16px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+}
+
+.alert-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0px;
+  gap: 4px;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.005em;
+  color: #7f1d1d;
+}
+
+.alert-title {
+  font-weight: 600;
+}
+
 input:checked + .slider {
   background-color: #3b5b63;
 }

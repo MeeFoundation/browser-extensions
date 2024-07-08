@@ -27,6 +27,24 @@ async function isExtensionEnabled() {
   }
 }
 
+async function checkAlert(parsedDomain: string) {
+  const alertContainer = document.getElementById("alert-container");
+  const currentDomainContainer = document.getElementById("current-domain");
+  const enabledExtension = await isExtensionEnabled();
+  let domainEnabled = true;
+  try {
+    const domainData = await getDomainData(parsedDomain);
+    domainEnabled = domainData.enabled;
+  } catch (error) {}
+
+  if (!enabledExtension || !domainEnabled) {
+    alertContainer?.classList.add("active");
+    if (currentDomainContainer) currentDomainContainer.innerHTML = parsedDomain;
+  } else {
+    alertContainer?.classList.remove("active");
+  }
+}
+
 async function checkEnabledExtension() {
   const enabledExtension = await isExtensionEnabled();
   const sliderExtension = document.getElementById(
@@ -44,6 +62,7 @@ chrome.runtime.onMessage.addListener(async function (message, _, __) {
 
     if (domain === parsedDomain) {
       checkDomain(parsedDomain);
+      checkAlert(parsedDomain);
     }
   }
 });
@@ -57,10 +76,11 @@ document.addEventListener("DOMContentLoaded", async (_) => {
   });
 
   if (parsedDomain) {
-    await checkDomain(parsedDomain);
+    checkDomain(parsedDomain);
+    checkAlert(parsedDomain);
   }
-  
-  await checkEnabledExtension();
+
+  checkEnabledExtension();
 });
 
 document
@@ -77,9 +97,9 @@ document
           domain: update_result.domain,
         });
         checkDomain(update_result.domain);
+        checkAlert(update_result.domain);
       }
     }
-    
   });
 
 document
@@ -93,6 +113,7 @@ document
         msg: "UPDATE_ENABLED",
       });
       checkDomain(parsedDomain);
+      checkAlert(parsedDomain);
     }
 
     await checkEnabledExtension();
