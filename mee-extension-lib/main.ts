@@ -103,7 +103,24 @@ async function registerRules(isSafari: boolean) {
   }
 }
 
-async function disableNavigatorGPC() {
+export async function enableNavigatorGPC(domains = ["<all_urls>"]) {
+  try {
+    const disable_domains = await getDisableDomains();
+    await chrome.scripting.updateContentScripts([
+      {
+        id: "1",
+        matches: domains,
+        excludeMatches: getRegDomains(disable_domains),
+        js: ["gpc-scripts/add-gpc-dom.js"],
+        runAt: "document_start",
+      },
+    ]);
+  } catch (error) {
+    console.log(`failed to update content scripts: ${error}`);
+  }
+}
+
+export async function disableNavigatorGPC() {
   try {
     const disable_domains = await getDisableDomains();
     if (disable_domains.length > 0)

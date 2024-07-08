@@ -39,7 +39,25 @@
         "pkg/hello_world_bg.wasm",
         "gpc-scripts/gpc-dom.js",
         "gpc-scripts/gpc-dom-disable.js",
-        "images/twitter-logo.png"
+        "images/twitter-logo.png",
+        "fonts/PublicSans-Black.woff2",
+        "fonts/PublicSans-BlackItalic.woff2",
+        "fonts/PublicSans-Bold.woff2",
+        "fonts/PublicSans-BoldItalic.woff2",
+        "fonts/PublicSans-ExtraBold.woff2",
+        "fonts/PublicSans-ExtraBoldItalic.woff2",
+        "fonts/PublicSans-ExtraLight.woff2",
+        "fonts/PublicSans-ExtraLightItalic.woff2",
+        "fonts/PublicSans-Regular.woff2",
+        "fonts/PublicSans-Italic.woff2",
+        "fonts/PublicSans-Light.woff2",
+        "fonts/PublicSans-LightItalic.woff2",
+        "fonts/PublicSans-Medium.woff2",
+        "fonts/PublicSans-MediumItalic.woff2",
+        "fonts/PublicSans-SemiBold.woff2",
+        "fonts/PublicSans-SemiBoldItalic.woff2",
+        "fonts/PublicSans-Thin.woff2",
+        "fonts/PublicSans-ThinItalic.woff2"
       ],
       "matches": ["<all_urls>"]
     }
@@ -49,8 +67,7 @@
     "declarativeNetRequestWithHostAccess",
     "declarativeContent",
     "activeTab",
-    "scripting",
-    "nativeMessaging"
+    "scripting"
   ],
   "declarative_net_request": {
     "rule_resources": [

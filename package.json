@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "run-p build:*",
-    "build:chrome": "VITE_BROWSER=chrome vite build && VITE_BROWSER=chrome APP_FILE=popup vite build && VITE_BROWSER=chrome APP_FILE=options vite build",
+    "build:chrome": "VITE_BROWSER=chrome vite build && VITE_BROWSER=chrome APP_FILE=content vite build && VITE_BROWSER=chrome APP_FILE=popup vite build && VITE_BROWSER=chrome APP_FILE=options vite build",
     "test": "run-p test:*",
     "test:chrome": "npm run build:chrome && web-ext run --source-dir ./dist/chrome --target=chromium --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me"
   },
@@ -25,6 +25,6 @@
     "web-ext": "^7.8.0"
   },
   "dependencies": {
-    "mee-extension-lib": "0.0.8"
+    "mee-extension-lib": "^0.0.6"
   }
 }

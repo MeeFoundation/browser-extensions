@@ -2,10 +2,9 @@
 .idea
 .vscode
 .DS_Store
-
+.yarn
 
 # Node.js
 node_modules
 
 dist
-MeeExtensionMac/Shared\ \(Extension\)/Resources/**

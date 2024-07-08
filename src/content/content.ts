@@ -1,18 +1,20 @@
 export {};
 
 async function getWellknown(url: URL) {
-  const response = await fetch(`${url.origin}/.well-known/gpc.json`);
-  let wellknownData;
-  try {
-    wellknownData = await response.json();
-  } catch {
-    wellknownData = null;
-  }
 
-  chrome.runtime.sendMessage({
-    msg: "DOWNLOAD_WELLKNOWN",
-    data: wellknownData,
-  });
+  try {
+    const response = await fetch(`${url.origin}/.well-known/gpc.json`);
+    const wellknownData = await response.json();
+    chrome.runtime.sendMessage({
+      msg: "DOWNLOAD_WELLKNOWN",
+      data: wellknownData,
+    });
+  } catch {
+    chrome.runtime.sendMessage({
+      msg: "DOWNLOAD_WELLKNOWN",
+      data: null,
+    });
+  }
 }
 
 const setDom = (state = true) => {
@@ -57,7 +59,7 @@ const setDom = (state = true) => {
           "🚀 ~ file: content.js:46 ~ .then ~ iOSVersion:",
           iOSVersion
         );
-        if (response.isEnabled) {
+        if (response.enabled) {
           setDom(true);
         } else {
           setDom(false);

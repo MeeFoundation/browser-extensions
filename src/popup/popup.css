@@ -3,152 +3,250 @@
 }
 
 body {
-  min-width: 250px;
-  padding: 20px;
-  border-radius: 0.75rem;
-  background-color: #ffffff;
+  min-width: 400px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-items: center;
-}
-#options-link {
-  align-self: flex-start;
-  margin-top: 20px;
-  color: rgb(79 134 142);
-  text-decoration-line: underline;
-}
-.content {
-  font-family: system-ui;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-items: center;
-  gap: 16px;
-}
-
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #1e293b;
-  gap: 16px;
-}
-.input-container {
-  width: 100%;
-  position: relative;
-}
-.input-container input {
-  border-color: rgb(79 134 142);
-  padding-top: 16px;
-  padding-bottom: 4px;
-  padding-left: 1rem;
-  padding-right: 1rem;
   margin: 0;
-  border-radius: 0.5rem;
-  border-width: 1px;
-  height: 30px;
-  font-size: 1rem;
-  line-height: 1.5rem;
-  font-weight: 400;
-  line-height: 1.5rem;
-  background-color: #ffffff;
-  transition-property: background-color, border-color, color, fill, stroke,
-    opacity, box-shadow, transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 200ms;
-  transition-timing-function: linear;
-  color: #1e293b;
+  background: #ffffff;
+  width: 100%;
 }
-.input-container input:focus {
-  box-shadow: 0px 0px 0px 1px rgb(79 134 142);
-}
-.input-container input::placeholder {
-  display: none;
+.popup {
+  width: 100%;
 }
 
-.input-container label {
-  transition-timing-function: linear;
-  transition-duration: 200ms;
-  color: rgb(79 134 142);
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 24px;
+  gap: 16px;
+  background: #dfecee;
+}
+.header-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px;
+  gap: 3px;
+  width: 100%;
+}
+.header-title {
+  font-family: "Public Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.005em;
+  color: #374e53;
+}
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  gap: 12px;
+  border-bottom: 1px solid #cbd5e1;
+  border-radius: 0px;
+}
+
+.text {
+  font-family: "Public Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.005em;
+  color: #1e293b;
+}
+
+.switch {
+  margin-left: 10px;
+  position: relative;
+  display: inline-block;
+  width: 39px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
   top: 0;
   left: 0;
-  padding-left: 0.75rem;
-  padding-right: 0.75rem;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  border-width: 1px;
-  border-color: transparent;
-  border-style: solid;
-  transition-duration: 200ms;
-  transition-timing-function: linear;
-  pointer-events: none;
+  right: 0;
+  bottom: 0;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+  border-radius: 34px;
+  background: transparent;
+  border: 1px solid #94a3b8;
+  width: 44px;
+  height: 24px;
+}
+
+.slider:before {
   position: absolute;
-}
+  content: "";
+  width: 12px;
+  height: 12px;
 
-.input-container input:focus + label,
-.input-container input:not(:placeholder-shown) + label {
-  transform: scale(0.9) translate(2.4px, -10px);
-  padding-left: 2px;
-}
-button {
-  box-sizing: border-box;
+  left: 4px;
+  bottom: 6px;
+
+  background-color: #334155;
+  border-radius: 50%;
   display: flex;
-  padding-top: 0.625rem;
-  padding-bottom: 0.625rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  flex-direction: row;
-  flex: none;
-  flex-grow: 0;
-  justify-content: center;
   align-items: center;
-  border-radius: 0.75rem;
-  border-width: 1px;
-  border-style: solid;
-  width: 100%;
-  height: 2.75rem;
-  background: linear-gradient(92.42deg, #3b5b63 0%, #4f868e 100%);
-  color: #ffffff;
-  border-color: #436e77;
-  cursor: pointer;
+  justify-content: center;
 }
 
-input:where(:not([type])):focus-visible,
-[type="text"]:focus-visible,
-[type="email"]:focus-visible,
-[type="url"]:focus-visible,
-[type="password"]:focus-visible,
-[type="number"]:focus-visible,
-[type="date"]:focus-visible,
-[type="datetime-local"]:focus-visible,
-[type="month"]:focus-visible,
-[type="search"]:focus-visible,
-[type="tel"]:focus-visible,
-[type="time"]:focus-visible,
-[type="week"]:focus-visible,
-[multiple]:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  outline: none;
+input:checked + .slider {
+  background-color: #3b5b63;
 }
-::-webkit-input-placeholder {
-  /* WebKit browsers */
-  color: transparent;
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(16px);
+  -ms-transform: translateX(16px);
+  transform: translateX(16px);
+  bottom: 2px;
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  content: "✓";
+  color: #3b5b63;
 }
-::-moz-placeholder {
-  /* Mozilla Firefox 4 to 18 */
-  color: transparent;
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 900;
+  src: url(/fonts/PublicSans-Black.woff2) format("woff2");
 }
-:-ms-input-placeholder {
-  /* Internet Explorer 10-11 */
-  color: transparent;
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 900;
+  src: url(/fonts/PublicSans-BlackItalic.woff2) format("woff2");
 }
-::-ms-input-placeholder {
-  /* Microsoft Edge */
-  color: transparent;
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 700;
+  src: url(/fonts/PublicSans-Bold.woff2) format("woff2");
 }
-::placeholder {
-  color: transparent;
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 700;
+  src: url(/fonts/PublicSans-BoldItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 800;
+  src: url(/fonts/PublicSans-ExtraBold.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 800;
+  src: url(/fonts/PublicSans-ExtraBoldItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 200;
+  src: url(/fonts/PublicSans-ExtraLight.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 200;
+  src: url(/fonts/PublicSans-ExtraLightItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 400;
+  src: url(/fonts/PublicSans-Regular.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 400;
+  src: url(/fonts/PublicSans-Italic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 300;
+  src: url(/fonts/PublicSans-Light.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 300;
+  src: url(/fonts/PublicSans-LightItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 500;
+  src: url(/fonts/PublicSans-Medium.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 500;
+  src: url(/fonts/PublicSans-MediumItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 600;
+  src: url(/fonts/PublicSans-SemiBold.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 600;
+  src: url(/fonts/PublicSans-SemiBoldItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 100;
+  src: url(/fonts/PublicSans-Thin.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 100;
+  src: url(/fonts/PublicSans-ThinItalic.woff2) format("woff2");
 }

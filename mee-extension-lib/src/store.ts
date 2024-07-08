@@ -110,7 +110,7 @@ export async function getDomainData(parsedDomain: string): Promise<DBRow> {
   });
 }
 
-export async function changeEnableDomain(parsedDomain: string) {
+export async function changeEnableDomain(parsedDomain: string): Promise<DBRow> {
   return new Promise((resolve, reject) => {
     const request = openDB();
     request.onerror = () => {
@@ -141,7 +141,7 @@ export async function changeEnableDomain(parsedDomain: string) {
         };
         requestUpdate.onsuccess = () => {
           db.close();
-          resolve({ domain: new_data.domain, isEnabled: new_data.enabled });
+          resolve(new_data);
         };
       };
     };

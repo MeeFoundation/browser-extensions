@@ -5,6 +5,9 @@ import {
   getDomainData,
   getDomainFromUrl,
   changeExtensionEnabled,
+  toggleGPCHeaders,
+  enableNavigatorGPC,
+  disableNavigatorGPC,
 } from "mee-extension-lib";
 
 import { loadTemplate } from "./content/injectTemplate.js";
@@ -23,20 +26,23 @@ async function injectTemplate(tabID: number) {
   }
 }
 
-function afterDownloadWellknown(message: Message, sender: chrome.runtime.MessageSender) {
+function afterDownloadWellknown(
+  message: Message,
+  sender: chrome.runtime.MessageSender
+) {
   let tabID = sender.tab?.id;
   const url = sender.url;
 
   if (url && tabID) {
     let domain = getDomainFromUrl(url);
     let wellknown = [];
-  
+
     wellknown[tabID] = message.data;
     let wellknownData = message.data;
-  
+
     const gpc =
       wellknown[tabID] && wellknown[tabID]["gpc"] === true ? true : false;
-  
+
     if (gpc === true) {
       chrome.action.setIcon({
         tabId: tabID,
@@ -44,13 +50,13 @@ function afterDownloadWellknown(message: Message, sender: chrome.runtime.Message
       });
       injectTemplate(tabID);
     }
-  
+
     addRowToDB({
       domain: domain,
       wellknown: gpc,
       enabled: true,
     });
-  
+
     chrome.runtime.onMessage.addListener((message) => {
       if (message.msg === "POPUP_LOADED") {
         chrome.runtime.sendMessage({
@@ -60,7 +66,6 @@ function afterDownloadWellknown(message: Message, sender: chrome.runtime.Message
       }
     });
   }
-  
 }
 
 async function checkEnabledExtension() {
@@ -68,12 +73,15 @@ async function checkEnabledExtension() {
   return !extensionData || extensionData.enabled;
 }
 
-
-async function onCheckEnabledMessageHandled(message: Message, sendResponse:(response?: any) => void) {
+async function onCheckEnabledMessageHandled(
+  message: Message,
+  sendResponse: (response?: any) => void
+) {
   const enabledExtension = await checkEnabledExtension();
   const disable_domains = await getDisableDomains();
-  const isEnabled = message.url && !disable_domains.includes(message.url) && enabledExtension;
-  sendResponse({ isEnabled });
+  const enabled =
+    message.url && !disable_domains.includes(message.url) && enabledExtension;
+  sendResponse({ enabled });
 }
 
 chrome.runtime.onInstalled.addListener(async function () {
@@ -81,26 +89,51 @@ chrome.runtime.onInstalled.addListener(async function () {
 });
 
 interface Message {
-  msg: string,
-  data?: string| boolean | any
-  url?: string
+  msg: string;
+  data?: string | boolean | any;
+  url?: string;
+  domain?: string;
+  mode?: "enable" | "disable" | "remove";
 }
-chrome.runtime.onMessage.addListener((message: Message, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
-  switch (message.msg) {
-    case "DOWNLOAD_WELLKNOWN": {
-      afterDownloadWellknown(message, sender);
-      return true;
-    }
-    case "UPDATE_ENABLED": {
-      changeExtensionEnabled(import.meta.env.VITE_BROWSER === "safari");
-      return true;
-    }
-    case "CHECK_ENABLED": {
-      onCheckEnabledMessageHandled(message, sendResponse);
-      return true;
-    }
-    default: {
-      return false;
+chrome.runtime.onMessage.addListener(
+  (
+    message: Message,
+    sender: chrome.runtime.MessageSender,
+    sendResponse: (response?: any) => void
+  ) => {
+    switch (message.msg) {
+      case "DOWNLOAD_WELLKNOWN": {
+        afterDownloadWellknown(message, sender);
+        return true;
+      }
+      case "UPDATE_ENABLED": {
+        changeExtensionEnabled(import.meta.env.VITE_BROWSER === "safari");
+        return true;
+      }
+      case "UPDATE_SELECTOR": {
+        if (message.mode === "enable") {
+          enableNavigatorGPC();
+        } else {
+          disableNavigatorGPC();
+        }
+        if (message.domain && message.mode) {
+          toggleGPCHeaders(
+            1,
+            message.domain,
+            import.meta.env.VITE_BROWSER === "safari",
+            message.mode
+          );
+        }
+
+        return true;
+      }
+      case "CHECK_ENABLED": {
+        onCheckEnabledMessageHandled(message, sendResponse);
+        return true;
+      }
+      default: {
+        return false;
+      }
     }
   }
-});
+);

@@ -9,6 +9,7 @@
 ```sh
   docker pull verdaccio/verdaccio
 ```
+
 ```sh
   docker run -it --rm --name verdaccio -p 4873:4873 verdaccio/verdaccio
 ```
@@ -26,6 +27,21 @@
 ```
 
 ## Install package into Mee extension
+
 ```sh
   NPM_CONFIG_REGISTRY=http://0.0.0.0:4873 yarn add mee-extension-lib
 ```
+
+## Copy gpc-scripts during build
+
+### with vite-plugin-static-copy plugin
+
+    import { viteStaticCopy, Target } from "vite-plugin-static-copy";
+
+    export default defineConfig({
+      plugins: [
+        viteStaticCopy({
+          targets: [{src: "node_modules/mee-extension-lib/dist/gpc-scripts",dest: "",}],
+        }),
+      ],
+    })

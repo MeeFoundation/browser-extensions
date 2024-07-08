@@ -1,16 +1,14 @@
 import { resolve } from "path";
 import { defineConfig } from "vite";
 import { viteStaticCopy, Target } from "vite-plugin-static-copy";
-
 const popup_inputs = [resolve(__dirname, "./src/popup/popup.ts")];
+const content_inputs = [resolve(__dirname, "./src/content/content.ts")];
 const options_inputs = [resolve(__dirname, "./src/options/options.ts")];
-const background_inputs = [
-  resolve(__dirname, "./src/background.ts"),
-  resolve(__dirname, "./src/content/content.ts"),
-];
+const background_inputs = [resolve(__dirname, "./src/background.ts")];
 
 const isPopupBuild = process.env.APP_FILE === "popup";
 const isOptionsBuild = process.env.APP_FILE === "options";
+const isContentBuild = process.env.APP_FILE === "content";
 
 const target = process.env.VITE_BROWSER || "chrome";
 const isSafari = target === "safari";
@@ -29,11 +27,7 @@ const copy_targets: Target[] = [
     dest: "",
   },
   {
-    src: "src/gpc-scripts",
-    dest: "",
-  },
-  {
-    src: "src/images",
+    src: "node_modules/mee-extension-lib/dist/gpc-scripts",
     dest: "",
   },
   {
@@ -80,6 +74,8 @@ const getInput = () => {
     return popup_inputs;
   } else if (isOptionsBuild) {
     return options_inputs;
+  } else if (isContentBuild) {
+    return content_inputs;
   } else {
     return background_inputs;
   }
@@ -87,7 +83,7 @@ const getInput = () => {
 
 export default defineConfig({
   build: {
-    emptyOutDir: !isPopupBuild && !isOptionsBuild ? true : false,
+    emptyOutDir: !isContentBuild && !isPopupBuild && !isOptionsBuild ? true : false,
     outDir: outDir,
     minify: false,
     sourcemap: true,
