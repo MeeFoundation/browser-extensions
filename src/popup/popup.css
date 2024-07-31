@@ -1,0 +1,289 @@
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  min-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-items: center;
+  margin: 0;
+  background: #ffffff;
+  width: 100%;
+}
+.popup {
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 24px;
+  gap: 16px;
+  background: #dfecee;
+}
+.header-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px;
+  gap: 3px;
+  width: 100%;
+}
+.header-title {
+  font-family: "Public Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.005em;
+  color: #374e53;
+}
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  gap: 12px;
+  border-bottom: 1px solid #cbd5e1;
+  border-radius: 0px;
+}
+
+.text {
+  font-family: "Public Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.005em;
+  color: #1e293b;
+}
+
+.switch {
+  margin-left: 10px;
+  position: relative;
+  display: inline-block;
+  width: 39px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+  border-radius: 34px;
+  background: transparent;
+  border: 1px solid #94a3b8;
+  width: 44px;
+  height: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  width: 12px;
+  height: 12px;
+
+  left: 4px;
+  bottom: 6px;
+
+  background-color: #334155;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#alert-container {
+  display: none;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 16px 16px 0px;
+}
+
+#alert-container.active {
+  display: flex;
+}
+
+.alert {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 16px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+}
+
+.alert-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0px;
+  gap: 4px;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.005em;
+  color: #7f1d1d;
+}
+
+.alert-title {
+  font-weight: 600;
+}
+
+input:checked + .slider {
+  background-color: #3b5b63;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(16px);
+  -ms-transform: translateX(16px);
+  transform: translateX(16px);
+  bottom: 2px;
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  content: "✓";
+  color: #3b5b63;
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 900;
+  src: url(/fonts/PublicSans-Black.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 900;
+  src: url(/fonts/PublicSans-BlackItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 700;
+  src: url(/fonts/PublicSans-Bold.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 700;
+  src: url(/fonts/PublicSans-BoldItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 800;
+  src: url(/fonts/PublicSans-ExtraBold.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 800;
+  src: url(/fonts/PublicSans-ExtraBoldItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 200;
+  src: url(/fonts/PublicSans-ExtraLight.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 200;
+  src: url(/fonts/PublicSans-ExtraLightItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 400;
+  src: url(/fonts/PublicSans-Regular.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 400;
+  src: url(/fonts/PublicSans-Italic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 300;
+  src: url(/fonts/PublicSans-Light.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 300;
+  src: url(/fonts/PublicSans-LightItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 500;
+  src: url(/fonts/PublicSans-Medium.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 500;
+  src: url(/fonts/PublicSans-MediumItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 600;
+  src: url(/fonts/PublicSans-SemiBold.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 600;
+  src: url(/fonts/PublicSans-SemiBoldItalic.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: normal;
+  font-weight: 100;
+  src: url(/fonts/PublicSans-Thin.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: Public Sans;
+  font-style: italic;
+  font-weight: 100;
+  src: url(/fonts/PublicSans-ThinItalic.woff2) format("woff2");
+}
