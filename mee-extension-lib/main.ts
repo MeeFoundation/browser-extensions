@@ -4,6 +4,8 @@ import {
   getDisableDomains,
   getDomainData,
   changeEnableDomain,
+  addUserInfo,
+  getUserInfo
 } from "./src/store";
 import { getDomainFromUrl, getRegDomain, getRegDomains } from "./src/string";
 import { getCurrentParsedDomain } from "./src/browser";
@@ -183,4 +185,6 @@ export {
   getRegDomain,
   getRegDomains,
   getCurrentParsedDomain,
+  addUserInfo,
+  getUserInfo
 };

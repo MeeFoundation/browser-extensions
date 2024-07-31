@@ -42,7 +42,7 @@ const setDom = (state = true) => {
   getWellknown(url);
   chrome.runtime
     .sendMessage({
-      msg: "CHECK_ENABLED",
+      msg: "CONTENT_LOADED",
       url: url.hostname,
     })
     .then((response) => {

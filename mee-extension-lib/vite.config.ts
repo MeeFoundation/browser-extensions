@@ -14,7 +14,7 @@ const copy_targets: Target[] = [
 export default defineConfig({
   build: {
     emptyOutDir: true,
-    minify: true,
+    minify: false,
     sourcemap: true,
     lib: {
       entry: resolve(__dirname, "main.ts"),

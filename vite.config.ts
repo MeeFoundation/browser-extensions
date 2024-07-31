@@ -54,14 +54,6 @@ const copy_targets: Target[] = [
     src: "src/options/options.css",
     dest: "",
   },
-  {
-    src: "src/content/template.html",
-    dest: "",
-  },
-  {
-    src: "pkg/hello_world_bg.wasm",
-    dest: "pkg/",
-  },
 ];
 
 let outDir = "dist/chrome";

@@ -1,5 +1,5 @@
 export function openDB(): IDBOpenDBRequest {
-  return indexedDB.open("MeeExtensionDB", 14);
+  return indexedDB.open("MeeWebExtensionDB", 1);
 }
 
 export function initDB() {
@@ -10,9 +10,66 @@ export function initDB() {
     const objectStore = db.createObjectStore("domains", { keyPath: "domain" });
     objectStore.createIndex("wellknown", "wellknown", { unique: false });
     objectStore.createIndex("enabled", "enabled", { unique: false });
-    objectStore.createIndex("domain", "enabled", { unique: true });
+    objectStore.createIndex("domain", "domain", { unique: true });
+    const userStore = db.createObjectStore("user", { keyPath: "id" });
+    userStore.createIndex("id", "id", { unique: true });
+    userStore.createIndex("user_uid", "user_uid", { unique: true });
     db.close();
   };
+}
+
+export function addUserInfo(userUid: string) {
+  const request = openDB();
+
+  request.onsuccess = function (event) {
+    const db = (event.target as IDBOpenDBRequest).result;
+    const transaction = db.transaction(["user"], "readwrite");
+    const objectStore = transaction.objectStore("user");
+
+    const request_get = objectStore.get(1);
+
+    request_get.onsuccess = (event: any) => {
+      const old_data = event.target.result;
+      if (!old_data) {
+        const requestUpdate = objectStore.put({ id: 1, user_uid: userUid });
+        requestUpdate.onerror = (event) => {
+          console.warn("requestUpdate error", event);
+        };
+        // requestUpdate.onsuccess = (event) => {
+        //   console.log("requestUpdate onsuccess", event);
+        // };
+      }
+    };
+  };
+}
+
+interface UserData {
+  user_uid: string;
+}
+export async function getUserInfo(): Promise<UserData> {
+  return new Promise((resolve, reject) => {
+    const request = openDB();
+
+    request.onerror = () => {
+      reject("Error in openDB");
+    };
+    request.onsuccess = function (event) {
+      const db = (event.target as IDBOpenDBRequest).result;
+      const transaction = db.transaction(["user"], "readwrite");
+      const objectStore = transaction.objectStore("user");
+
+      const request_get = objectStore.get(1);
+      request_get.onerror = () => {
+        reject(`Result: has't been found`);
+      };
+      request_get.onsuccess = (event: any) => {
+        const data = event.target.result;
+        resolve({ user_uid: data?.user_uid });
+      };
+
+      db.close();
+    };
+  });
 }
 
 interface DBRow {
@@ -45,9 +102,9 @@ export function addRowToDB(data: DBRow) {
       requestUpdate.onerror = (event) => {
         console.warn("requestUpdate error", event);
       };
-      requestUpdate.onsuccess = (event) => {
-        console.log("requestUpdate onsuccess", event);
-      };
+      // requestUpdate.onsuccess = (event) => {
+      //   console.log("requestUpdate onsuccess", event);
+      // };
     };
   };
 }

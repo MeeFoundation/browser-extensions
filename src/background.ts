@@ -8,23 +8,14 @@ import {
   toggleGPCHeaders,
   enableNavigatorGPC,
   disableNavigatorGPC,
+  getUserInfo,
+  addUserInfo,
 } from "mee-extension-lib";
 
-import { loadTemplate } from "./content/injectTemplate.js";
+import config from "./config";
+import { getSDAData, parseTaxonomyRecords } from "./sda-profile";
 
 initDB();
-
-async function injectTemplate(tabID: number) {
-  const enabledExtension = await checkEnabledExtension();
-  if (enabledExtension) {
-    chrome.scripting.executeScript({
-      target: {
-        tabId: tabID,
-      },
-      func: loadTemplate,
-    });
-  }
-}
 
 function afterDownloadWellknown(
   message: Message,
@@ -43,14 +34,6 @@ function afterDownloadWellknown(
     const gpc =
       wellknown[tabID] && wellknown[tabID]["gpc"] === true ? true : false;
 
-    if (gpc === true) {
-      chrome.action.setIcon({
-        tabId: tabID,
-        path: "images/icon-96.png",
-      });
-      injectTemplate(tabID);
-    }
-
     addRowToDB({
       domain: domain,
       wellknown: gpc,
@@ -67,6 +50,36 @@ function afterDownloadWellknown(
     });
   }
 }
+
+let taxonomyRecords: string[][];
+
+const getTaxonomyRecords = async () => {
+  const response = await fetch(chrome.runtime.getURL("/taxonomy.tsv"));
+  const taxonomy = await response.text();
+  taxonomyRecords = parseTaxonomyRecords(taxonomy);
+};
+
+getTaxonomyRecords();
+
+const onInitPage = async () => {
+  const userInfo = await getUserInfo();
+  const userUid = userInfo?.user_uid ? userInfo.user_uid : crypto.randomUUID();
+  if (!userInfo.user_uid) {
+    addUserInfo(userUid);
+  }
+  const data = await getSDAData(taxonomyRecords, userUid);
+  try {
+    const headers = new Headers();
+    headers.append("Content-Type", "application/json");
+    const request = new Request(config.backendUrl + "api/v1/ad_profiles", {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(data),
+    });
+
+    fetch(request);
+  } catch (e) {}
+};
 
 async function checkEnabledExtension() {
   const extensionData = await getDomainData("meeExtension");
@@ -127,8 +140,9 @@ chrome.runtime.onMessage.addListener(
 
         return true;
       }
-      case "CHECK_ENABLED": {
+      case "CONTENT_LOADED": {
         onCheckEnabledMessageHandled(message, sendResponse);
+        onInitPage();
         return true;
       }
       default: {
