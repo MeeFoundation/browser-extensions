@@ -2,7 +2,7 @@
   "name": "mee-extension-lib",
   "version": "0.0.7",
   "description": "",
-  "main": "dist/mee-extension-lib.js",
+  "main": "./dist/mee-extension-lib.js",
   "types": "dist/main.d.ts",
   "type": "module",
   "scripts": {

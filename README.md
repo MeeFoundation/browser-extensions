@@ -27,9 +27,10 @@
   - [https://global-privacy-control.glitch.me/](https://global-privacy-control.glitch.me/)
 
 # Start using extension
+- Build [Mee Extension Library](./mee-extension-lib/README.md)
 - Run build in `Extension` directory
   ```sh
-  npm run build
+  pnpm run build
   ```
 - All sliders should be green at the test websites 
 
@@ -37,17 +38,7 @@
 - Run test in `Extension` directory
 ## For testing in Chrome
   ```sh
-  npm run test:chrome
-  ```
-## For testing in Firefox Desktop
-  ```sh
-  npm run test:ff-desktop
-  ```
-## For testing in Firefox Android
-- Change the "--android-device" variable in the test:ff-android command in the package.json file to your android device name
-- Run test
-  ```sh
-  npm run test:ff-android
+  pnpm run test:chrome
   ```
 
 # How to open an extension in Google Chrome

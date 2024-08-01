@@ -25,6 +25,6 @@
     "web-ext": "^7.8.0"
   },
   "dependencies": {
-    "mee-extension-lib": "0.0.7"
+    "mee-extension-lib": "link:mee-extension-lib"
   }
 }

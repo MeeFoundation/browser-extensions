@@ -1,10 +1,10 @@
 {
-    "extension_name": {
-        "message": "MeeExtension",
-        "description": "The display name for the extension."
-    },
-    "extension_description": {
-        "message": "This is MeeExtension.",
-        "description": "Description of what the extension does."
-    }
+  "extension_name": {
+    "message": "MeeExtension",
+    "description": "The display name for the extension."
+  },
+  "extension_description": {
+    "message": "Mee extension generates a set of interests to tailor the ads, allows opt out of being tracked by websites to ensure privacy.",
+    "description": "Description of what the extension does."
+  }
 }
