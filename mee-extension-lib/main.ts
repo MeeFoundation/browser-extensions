@@ -44,13 +44,13 @@ export async function toggleGPCHeaders(
       : [
           {
             header: "Sec-GPC",
-            operation: "set",
-            value: mode === "enable" ? "1" : "0",
+            operation:  mode === "enable" ? "set" : "remove",
+            value: mode === "enable" ? "1" : undefined,
           },
           {
             header: "DNT",
-            operation: "set",
-            value: mode === "enable" ? "1" : "0",
+            operation:  mode === "enable" ? "set" : "remove",
+            value: mode === "enable" ? "1" : undefined,
           },
         ];
 
