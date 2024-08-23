@@ -1,10 +1,10 @@
 {
   "extension_name": {
-    "message": "Mee Extension",
+    "message": "Mee Extension - Let the web work for you",
     "description": "The display name for the extension."
   },
   "extension_description": {
-    "message": "Mee extension generates a set of interests to tailor the ads, allows opt out of being tracked by websites to ensure privacy.",
+    "message": "With Mee Extension, online activities are surveillance-free. Enjoy content supported by ads that respect privacy & match interests.",
     "description": "Description of what the extension does."
   }
 }

@@ -22,7 +22,9 @@
       "32": "images/toolbar-icon-32.png",
       "38": "images/toolbar-icon-38.png",
       "48": "images/toolbar-icon-48.png",
-      "72": "images/toolbar-icon-72.png"
+      "72": "images/toolbar-icon-72.png",
+      "96": "images/toolbar-icon-96.png",
+      "128": "images/toolbar-icon-128.png"
     }
   },
   "content_scripts": [
