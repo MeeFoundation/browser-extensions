@@ -45,9 +45,3 @@
   - Open [chrome://extensions/](chrome://extensions/)
   - Click on `Load unpacked`
   - Select the `Extension/dist/chrome` directory in the file manager
-
-# How to open an extension in Mozilla Firefox
-  - Open [about:debugging](about:debugging)
-  - (Optional) Click on `This Firefox`
-  - Click on `Load Temporary Add-on`
-  - Select the `manifest.json` file in the "Extension/dist/firefox/" directory in the file manager
