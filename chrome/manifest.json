@@ -65,9 +65,6 @@
   ],
   "permissions": [
     "declarativeNetRequest",
-    "declarativeNetRequestWithHostAccess",
-    "declarativeContent",
-    "activeTab",
     "scripting",
     "history"
   ],
