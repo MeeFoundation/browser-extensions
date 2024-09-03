@@ -25,6 +25,8 @@
     "web-ext": "^7.8.0"
   },
   "dependencies": {
-    "mee-extension-lib": "link:mee-extension-lib"
+    "mee-extension-lib": "link:mee-extension-lib",
+    "@tensorflow-models/universal-sentence-encoder": "^1.3.3",
+    "@tensorflow/tfjs": "^4.20.0"
   }
 }
