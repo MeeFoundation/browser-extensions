@@ -49,7 +49,7 @@ function afterDownloadWellknown(message: Message, sender: chrome.runtime.Message
 
 let taxonomyRecords: string[][]
 
-const getTaxonomyRecords = async () => {
+async function getTaxonomyRecords() {
   const response = await fetch(chrome.runtime.getURL('/taxonomy.tsv'))
   const taxonomy = await response.text()
   taxonomyRecords = parseTaxonomyRecords(taxonomy)
@@ -57,7 +57,8 @@ const getTaxonomyRecords = async () => {
 
 getTaxonomyRecords()
 
-const onInitPage = async () => {
+async function onInitPage() {
+  console.log('Initializing SDA')
   const userUid = await upsertUserInfo()
   const data = await getSDAData(taxonomyRecords, userUid)
   sendAdProfile(data)

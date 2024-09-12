@@ -1,22 +1,22 @@
+import '@tensorflow/tfjs'
 import * as use from '@tensorflow-models/universal-sentence-encoder'
 
-function getRandomId(min: number, max: number) {
+const getRandomId = (min: number, max: number) => {
   return (Math.floor(Math.random() * (max - min + 1)) + min).toString()
 }
-function getAgeRangeID() {
+const getAgeRangeID = () => {
   return getRandomId(3, 15)
 }
-function getGenderID() {
+const getGenderID = () => {
   return getRandomId(49, 52)
 }
-function getNonProfitID() {
+const getNonProfitID = () => {
   return getRandomId(1539, 1544)
 }
 
 interface HistoryResult {
   id: string
-  count: number
-  result: chrome.history.HistoryItem[]
+  alpha: number
 }
 
 export async function getSDAData(taxonomyRecords: string[][], userUid: string) {
@@ -25,47 +25,40 @@ export async function getSDAData(taxonomyRecords: string[][], userUid: string) {
 }
 
 async function parseSearchHistory(taxonomyRecords: string[][]) {
+  const model = await use.load()
+
+  const history = await chrome.history.search({ text: '', maxResults: 1000 })
+  const historyStrings = history.map((i) => i.url).filter((i) => i) as string[]
+  const historyEmbeddings = await model.embed(historyStrings)
+
   const historyCount = await Promise.all(
     taxonomyRecords.map(async (record): Promise<HistoryResult> => {
       const id = record[0]
       const name = record[2]
-      // currently regex for history
-      const model = await use.load()
       const recordEmbedding = await model.embed(name)
-      recordEmbedding.print()
-      // const recordEmbed = recordEmbedding.arraySync()[0]
-      const history = await chrome.history.search({ text: '', maxResults: 1000 })
-      const historyStrings = history.map((i) => i.url).filter((i) => i) as string[]
-      const historyEmbeddings = await model.embed(historyStrings)
-      historyEmbeddings.print()
-      // historyEmbeddings.arraySync().forEach((historyEmbed) => {
-      //   const similarity = cosineSimilarity(recordEmbed, historyEmbed)
-      //   console.log(similarity)
-      // })
-
-      const result = name ? await chrome.history.search({ text: name }) : []
-      var count = result.reduce((sum: number, item) => {
-        const visitCount = item.visitCount ?? 0
-        return sum + visitCount
-      }, 0)
-
-      return { id: id, count: count, result: result }
+      const recordEmbed = recordEmbedding.arraySync()[0]
+      const similarities: number[] = []
+      historyEmbeddings.arraySync().forEach((historyEmbed) => {
+        const similarity = cosineSimilarity(recordEmbed, historyEmbed)
+        similarities.push(similarity)
+      })
+      const alpha = similarities.sort().reduce((acc, cur, idx) => {
+        if (idx > 10) return acc
+        return acc + cur / Math.pow(2, idx)
+      })
+      return { id, alpha }
     })
   )
 
-  const results = historyCount.filter((item) => item.count > 0)
-
-  const sorted = results.sort((item1, item2) => (item1.count < item2.count ? 1 : -1))
-
-  return sorted.map((item) => {
-    return { id: item.id }
-  })
+  console.log('RESULTING IN..')
+  console.log(historyCount.filter((item) => item.alpha > 0.5))
+  return historyCount.filter((item) => item.alpha > 0)
 }
 
-function cosineSimilarity(embeddingA, embeddingB) {
-  const dotProduct = embeddingA.dot(embeddingB).dataSync()
-  const normA = embeddingA.norm().dataSync()
-  const normB = embeddingB.norm().dataSync()
+function cosineSimilarity(embeddingA: number[], embeddingB: number[]) {
+  const dotProduct = embeddingA.reduce((acc, cur, idx) => acc + cur * embeddingB[idx], 0)
+  const normA = Math.sqrt(embeddingA.reduce((acc, cur) => acc + cur * cur, 0))
+  const normB = Math.sqrt(embeddingB.reduce((acc, cur) => acc + cur * cur, 0))
   return dotProduct / (normA * normB)
 }
 
@@ -106,7 +99,7 @@ function getValues(line: string, sep: string): string[] {
   })
 }
 
-/**
+/*
  * Parses the a TSV string containing taxonomy records, extracting the relevant
  * data into an array of arrays.
  *
