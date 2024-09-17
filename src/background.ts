@@ -58,7 +58,6 @@ async function getTaxonomyRecords() {
 getTaxonomyRecords()
 
 async function onInitPage() {
-  console.log('Initializing SDA')
   const userUid = await upsertUserInfo()
   const data = await getSDAData(taxonomyRecords, userUid)
   sendAdProfile(data)

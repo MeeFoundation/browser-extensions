@@ -1,6 +1,8 @@
 import '@tensorflow/tfjs'
 import * as use from '@tensorflow-models/universal-sentence-encoder'
 
+const SIMILARITY_THRESHOLD = 0.5
+
 const getRandomId = (min: number, max: number) => {
   return (Math.floor(Math.random() * (max - min + 1)) + min).toString()
 }
@@ -50,9 +52,7 @@ async function parseSearchHistory(taxonomyRecords: string[][]) {
     })
   )
 
-  console.log('RESULTING IN..')
-  console.log(historyCount.filter((item) => item.alpha > 0.5))
-  return historyCount.filter((item) => item.alpha > 0)
+  return historyCount.filter((item) => item.alpha > SIMILARITY_THRESHOLD)
 }
 
 function cosineSimilarity(embeddingA: number[], embeddingB: number[]) {
