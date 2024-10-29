@@ -10,7 +10,7 @@ async function checkDomain(parsedDomain: string) {
   ) as HTMLInputElement | null;
   try {
     const domainData = await getDomainData(parsedDomain);
-    const enabled = domainData.enabled;
+    const enabled = domainData ? domainData.enabled : true;
     if (sliderDomain) sliderDomain.checked = enabled;
   } catch (error) {
     if (sliderDomain) sliderDomain.checked = false;
@@ -34,7 +34,7 @@ async function checkAlert(parsedDomain: string) {
   let domainEnabled = true;
   try {
     const domainData = await getDomainData(parsedDomain);
-    domainEnabled = domainData.enabled;
+    domainEnabled = domainData ? domainData.enabled : true;
   } catch (error) {}
 
   if (!enabledExtension || !domainEnabled) {
@@ -93,7 +93,6 @@ document
       if (update_result) {
         chrome.runtime.sendMessage({
           msg: "UPDATE_SELECTOR",
-          mode: update_result.enabled ? "enable" : "disable",
           domain: update_result.domain,
         });
         checkDomain(update_result.domain);

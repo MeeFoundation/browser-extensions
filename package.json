@@ -5,10 +5,11 @@
   "main": "background.js",
   "type": "module",
   "scripts": {
-    "build": "run-p build:*",
+    "build-lib": "cd mee-extension-lib && pnpm build",
+    "build": "pnpm build-lib && run-p build:*",
     "build:chrome": "VITE_BROWSER=chrome vite build && VITE_BROWSER=chrome APP_FILE=content vite build && VITE_BROWSER=chrome APP_FILE=popup vite build && VITE_BROWSER=chrome APP_FILE=options vite build",
     "test": "run-p test:*",
-    "test:chrome": "npm run build:chrome && web-ext run --source-dir ./dist/chrome --target=chromium --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me"
+    "test:chrome": "web-ext run --source-dir ./dist/chrome --target=chromium --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me"
   },
   "author": "",
   "license": "ISC",

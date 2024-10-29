@@ -5,7 +5,7 @@ import {
   getDomainData,
   changeEnableDomain,
   addUserInfo,
-  getUserInfo
+  getUserInfo,
 } from "./src/store";
 import { getDomainFromUrl, getRegDomain, getRegDomains } from "./src/string";
 import { getCurrentParsedDomain } from "./src/browser";
@@ -44,13 +44,13 @@ export async function toggleGPCHeaders(
       : [
           {
             header: "Sec-GPC",
-            operation:  mode === "enable" ? "set" : "remove",
-            value: mode === "enable" ? "1" : undefined,
+            operation: "set",
+            value: "1",
           },
           {
             header: "DNT",
-            operation:  mode === "enable" ? "set" : "remove",
-            value: mode === "enable" ? "1" : undefined,
+            operation: "set",
+            value: "1",
           },
         ];
 
@@ -58,9 +58,9 @@ export async function toggleGPCHeaders(
     addRules: [
       {
         id: id,
-        priority: 2,
+        priority: id === 1 ? 2 : 3,
         action: {
-          type: "modifyHeaders",
+          type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
           requestHeaders: headers,
         },
         condition: {
@@ -77,65 +77,98 @@ export async function toggleGPCHeaders(
 
 async function addRulesForDisabledDomains(isSafari: boolean) {
   let id = 1;
-  const disable_domains = await getDisableDomains();
-  if (disable_domains) {
-    for (let domain of disable_domains) {
-      await toggleGPCHeaders(id++, getRegDomain(domain), isSafari, "disable");
+  const domains = await getDisableDomains();
+  if (domains.length) {
+    for (let domainData of domains) {
+      let new_id = id + domainData.id;
+      await toggleGPCHeaders(
+        new_id,
+        getRegDomain(domainData.domain),
+        isSafari,
+        "remove"
+      );
     }
+  }
+}
+
+async function updateNavigatorGPCScripts() {
+  try {
+    const disable_domains_data = await getDisableDomains();
+    const disable_domains = disable_domains_data.map(
+      (domain_data) => domain_data.domain
+    );
+    const scripts = await chrome.scripting.getRegisteredContentScripts();
+    const isBaseScriptExist = scripts.find((script) => script.id === "1");
+    const isDisabledScriptExist = scripts.find((script) => script.id === "2");
+
+    isBaseScriptExist
+      ? await chrome.scripting.updateContentScripts([
+          {
+            id: "1",
+            matches: ["<all_urls>"],
+            excludeMatches: getRegDomains(disable_domains),
+            js: ["gpc-scripts/add-gpc-dom.js"],
+            runAt: "document_start",
+          },
+        ])
+      : await chrome.scripting.registerContentScripts([
+          {
+            id: "1",
+            matches: ["<all_urls>"],
+            excludeMatches: getRegDomains(disable_domains),
+            js: ["gpc-scripts/add-gpc-dom.js"],
+            runAt: "document_start",
+          },
+        ]);
+
+    if (disable_domains.length) {
+      isDisabledScriptExist
+        ? await chrome.scripting.updateContentScripts([
+            {
+              id: "2",
+              matches: getRegDomains(disable_domains),
+              js: ["gpc-scripts/disable-gpc-dom.js"],
+              runAt: "document_start",
+            },
+          ])
+        : await chrome.scripting.registerContentScripts([
+            {
+              id: "2",
+              matches: getRegDomains(disable_domains),
+              js: ["gpc-scripts/disable-gpc-dom.js"],
+              runAt: "document_start",
+            },
+          ]);
+    } else if (isDisabledScriptExist) {
+      await chrome.scripting.unregisterContentScripts({ ids: ["2"] });
+    }
+  } catch (error) {
+    console.warn(`failed to update content scripts: ${error}`);
+  }
+}
+
+export async function updateSelector(domain: string, isSafari: boolean) {
+  const domainData = await getDomainData(domain);
+
+  if (domainData) {
+    updateNavigatorGPCScripts();
+    toggleGPCHeaders(
+      100 + domainData.id,
+      domainData.domain,
+      isSafari,
+      domainData.enabled ? "enable" : "remove"
+    );
   }
 }
 
 async function registerRules(isSafari: boolean) {
   try {
-    const disable_domains = await getDisableDomains();
     await toggleGPCHeaders(1, "*", isSafari);
     await addRulesForDisabledDomains(isSafari);
-    await chrome.scripting.registerContentScripts([
-      {
-        id: "1",
-        matches: ["<all_urls>"],
-        excludeMatches: getRegDomains(disable_domains),
-        js: ["gpc-scripts/add-gpc-dom.js"],
-        runAt: "document_start",
-      },
-    ]);
-    await disableNavigatorGPC();
-  } catch (error) {
-    console.log(`failed to register content scripts: ${error}`);
-  }
-}
 
-export async function enableNavigatorGPC(domains = ["<all_urls>"]) {
-  try {
-    const disable_domains = await getDisableDomains();
-    await chrome.scripting.updateContentScripts([
-      {
-        id: "1",
-        matches: domains,
-        excludeMatches: getRegDomains(disable_domains),
-        js: ["gpc-scripts/add-gpc-dom.js"],
-        runAt: "document_start",
-      },
-    ]);
+    await updateNavigatorGPCScripts();
   } catch (error) {
-    console.log(`failed to update content scripts: ${error}`);
-  }
-}
-
-export async function disableNavigatorGPC() {
-  try {
-    const disable_domains = await getDisableDomains();
-    if (disable_domains.length > 0)
-      await chrome.scripting.updateContentScripts([
-        {
-          id: "1",
-          matches: getRegDomains(disable_domains),
-          js: ["gpc-scripts/disable-gpc-dom.js"],
-          runAt: "document_start",
-        },
-      ]);
-  } catch (error) {
-    console.log(`failed to update content scripts: ${error}`);
+    console.warn(`failed to register content scripts: ${error}`);
   }
 }
 
@@ -143,21 +176,20 @@ async function unregisterRules(isSafari: boolean) {
   try {
     const scripts = await chrome.scripting.getRegisteredContentScripts();
     const scriptIds = scripts.map((script) => script.id);
-    await deleteAllDynamicRules(isSafari);
-    if (scriptIds.length)
+
+    if (scriptIds.length) {
       await chrome.scripting.unregisterContentScripts({ ids: scriptIds });
+    }
+
+    const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
+    const oldRuleIds = oldRules.map((rule) => rule.id);
+
+    oldRuleIds.map(async (id) => {
+      await toggleGPCHeaders(id, "*", isSafari, "remove");
+    });
   } catch (error) {
-    console.log(`failed to unregister content scripts: ${error}`);
+    console.warn(`failed to unregister content scripts: ${error}`);
   }
-}
-
-async function deleteAllDynamicRules(isSafari: boolean) {
-  const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
-  const oldRuleIds = oldRules.map((rule) => rule.id);
-
-  oldRuleIds.map(async (id) => {
-    toggleGPCHeaders(id, "*", isSafari, "remove");
-  });
 }
 
 export async function checkEnabledExtension() {
@@ -186,5 +218,5 @@ export {
   getRegDomains,
   getCurrentParsedDomain,
   addUserInfo,
-  getUserInfo
+  getUserInfo,
 };

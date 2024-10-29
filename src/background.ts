@@ -5,9 +5,7 @@ import {
   getDomainData,
   getDomainFromUrl,
   changeExtensionEnabled,
-  toggleGPCHeaders,
-  enableNavigatorGPC,
-  disableNavigatorGPC,
+  updateSelector,
   getUserInfo,
   addUserInfo,
 } from "mee-extension-lib";
@@ -91,7 +89,10 @@ async function onCheckEnabledMessageHandled(
   sendResponse: (response?: any) => void
 ) {
   const enabledExtension = await checkEnabledExtension();
-  const disable_domains = await getDisableDomains();
+  const disable_domains_data = await getDisableDomains();
+  const disable_domains = disable_domains_data.map(
+    (domain_data) => domain_data.domain
+  );
   const enabled =
     message.url && !disable_domains.includes(message.url) && enabledExtension;
   sendResponse({ enabled });
@@ -106,7 +107,7 @@ interface Message {
   data?: string | boolean | any;
   url?: string;
   domain?: string;
-  mode?: "enable" | "disable" | "remove";
+  mode?: "enable" | "remove";
 }
 chrome.runtime.onMessage.addListener(
   (
@@ -124,20 +125,12 @@ chrome.runtime.onMessage.addListener(
         return true;
       }
       case "UPDATE_SELECTOR": {
-        if (message.mode === "enable") {
-          enableNavigatorGPC();
-        } else {
-          disableNavigatorGPC();
-        }
-        if (message.domain && message.mode) {
-          toggleGPCHeaders(
-            1,
+        if (message.domain) {
+          updateSelector(
             message.domain,
-            import.meta.env.VITE_BROWSER === "safari",
-            message.mode
+            import.meta.env.VITE_BROWSER === "safari"
           );
         }
-
         return true;
       }
       case "CONTENT_LOADED": {

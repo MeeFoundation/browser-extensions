@@ -1,8 +1,6 @@
 # Mee Extension
 
 ## Start using extension
-
-- Build [Mee Extension Library](./mee-extension-lib/README.md)
 - Run build in `Extension` directory
   ```sh
   pnpm run build
