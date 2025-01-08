@@ -10,8 +10,8 @@ export const getBrowserInfo = () => {
   return isMobile ? "Chrome Mobile" : "Chrome";
 };
 
-export const getCurrentParsedDomain = (): Promise<string> => {
-  return new Promise((resolve, reject) => {
+export const getCurrentParsedDomain = (): Promise<string | null > => {
+  return new Promise((resolve) => {
     try {
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         let tab = tabs[0];
@@ -19,11 +19,11 @@ export const getCurrentParsedDomain = (): Promise<string> => {
           const currentUrl = getDomainFromUrl(tab.url);
           resolve(currentUrl);
         } else {
-          reject(null);
+          resolve(null);
         }
       });
     } catch (e) {
-      reject(null);
+      resolve(null);
     }
   });
 };

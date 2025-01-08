@@ -45,6 +45,23 @@ async function checkAlert(parsedDomain: string) {
   }
 }
 
+function changeDisableSlider(id: string, disabled: boolean) {
+  const sliderSwitch = document.getElementById(id) as HTMLElement | null;
+  const slider = sliderSwitch?.querySelector(
+    "input"
+  ) as HTMLInputElement | null;
+
+  if (slider) {
+    slider.disabled = disabled;
+
+    if (disabled) {
+      sliderSwitch?.classList.add("disabled");
+    } else {
+      sliderSwitch?.classList.remove("disabled");
+    }
+  }
+}
+
 async function checkEnabledExtension() {
   const enabledExtension = await isExtensionEnabled();
   const sliderExtension = document.getElementById(
@@ -53,6 +70,8 @@ async function checkEnabledExtension() {
   if (sliderExtension) {
     sliderExtension.checked = enabledExtension;
   }
+
+  changeDisableSlider("slider-domain-switch", !enabledExtension);
 }
 
 chrome.runtime.onMessage.addListener(async function (message, _, __) {
@@ -60,7 +79,7 @@ chrome.runtime.onMessage.addListener(async function (message, _, __) {
     const parsedDomain = await getCurrentParsedDomain();
     let { domain } = message.data;
 
-    if (domain === parsedDomain) {
+    if (parsedDomain && domain === parsedDomain) {
       checkDomain(parsedDomain);
       checkAlert(parsedDomain);
     }
@@ -69,7 +88,6 @@ chrome.runtime.onMessage.addListener(async function (message, _, __) {
 
 document.addEventListener("DOMContentLoaded", async (_) => {
   const parsedDomain = await getCurrentParsedDomain();
-
   chrome.runtime.sendMessage({
     msg: "POPUP_LOADED",
     data: null,
@@ -78,9 +96,11 @@ document.addEventListener("DOMContentLoaded", async (_) => {
   if (parsedDomain) {
     checkDomain(parsedDomain);
     checkAlert(parsedDomain);
+    checkEnabledExtension();
+  } else {
+    changeDisableSlider("slider-extension-switch", true);
+    changeDisableSlider("slider-domain-switch", true);
   }
-
-  checkEnabledExtension();
 });
 
 document
