@@ -1,6 +1,7 @@
 import {
   initDB,
   addRowToDB,
+  getDomains,
   getDisableDomains,
   getDomainData,
   changeEnableDomain,
@@ -75,9 +76,9 @@ export async function toggleGPCHeaders(
   chrome.declarativeNetRequest.updateDynamicRules(UpdateRuleOptions);
 }
 
-async function addRulesForDisabledDomains(isSafari: boolean) {
+async function addDynamicRules(isSafari: boolean) {
   let id = 1;
-  const domains = await getDisableDomains();
+  const domains = await getDomains();
   if (domains.length) {
     for (let domainData of domains) {
       let new_id = id + domainData.id;
@@ -85,7 +86,7 @@ async function addRulesForDisabledDomains(isSafari: boolean) {
         new_id,
         getRegDomain(domainData.domain),
         isSafari,
-        "remove"
+        domainData.enabled ? "enable" : "remove"
       );
     }
   }
@@ -163,8 +164,14 @@ export async function updateSelector(domain: string, isSafari: boolean) {
 
 async function registerRules(isSafari: boolean) {
   try {
+    const oldRuleIds = (
+      await chrome.declarativeNetRequest.getDynamicRules()
+    ).map((rule) => rule.id);
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: oldRuleIds,
+    });
     await toggleGPCHeaders(1, "*", isSafari);
-    await addRulesForDisabledDomains(isSafari);
+    await addDynamicRules(isSafari);
 
     await updateNavigatorGPCScripts();
   } catch (error) {
@@ -181,12 +188,15 @@ async function unregisterRules(isSafari: boolean) {
       await chrome.scripting.unregisterContentScripts({ ids: scriptIds });
     }
 
-    const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
-    const oldRuleIds = oldRules.map((rule) => rule.id);
+    const oldRuleIds = (
+      await chrome.declarativeNetRequest.getDynamicRules()
+    ).map((rule) => rule.id);
 
-    oldRuleIds.map(async (id) => {
-      await toggleGPCHeaders(id, "*", isSafari, "remove");
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: oldRuleIds,
     });
+
+    toggleGPCHeaders(1, "*", isSafari, "remove");
   } catch (error) {
     console.warn(`failed to unregister content scripts: ${error}`);
   }
