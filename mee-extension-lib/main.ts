@@ -7,18 +7,17 @@ import {
   changeEnableDomain,
   addUserInfo,
   getUserInfo,
+  getMySignalsEnabled,
+  setMySignalsEnabled,
+  setDomainMsConfirmed,
+  getMsConfirmedDomains,
 } from "./src/store";
 import { getDomainFromUrl, getRegDomain, getRegDomains } from "./src/string";
 import { getCurrentParsedDomain } from "./src/browser";
 
-export async function toggleGPCHeaders(
-  id: number,
-  domain: string,
-  isSafari: boolean,
-  mode: string = "enable"
-) {
+function getAllResourceTypes(isSafari: boolean) {
   // Safari doesn't give all Resources from type, so we need writing this array by hand
-  const allResourceTypes = isSafari
+  return isSafari
     ? [
         "font",
         "image",
@@ -32,6 +31,15 @@ export async function toggleGPCHeaders(
         "xmlhttprequest",
       ]
     : Object.values(chrome.declarativeNetRequest.ResourceType);
+}
+
+export async function toggleGPCHeaders(
+  id: number,
+  domain: string,
+  isSafari: boolean,
+  mode: string = "enable"
+) {
+  const allResourceTypes = getAllResourceTypes(isSafari);
 
   const headers =
     mode === "remove"
@@ -60,6 +68,62 @@ export async function toggleGPCHeaders(
       {
         id: id,
         priority: id === 1 ? 2 : 3,
+        action: {
+          type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
+          requestHeaders: headers,
+        },
+        condition: {
+          urlFilter: domain,
+          resourceTypes: allResourceTypes,
+        },
+      },
+    ],
+    removeRuleIds: [id],
+  };
+  /* @ts-ignore */
+  chrome.declarativeNetRequest.updateDynamicRules(UpdateRuleOptions);
+}
+
+export async function toggleMSHeaders(
+  id: number,
+  domain: string,
+  isSafari: boolean,
+  mode: "sec-ms" | "sec-ms-gpc" | "remove"
+) {
+  const allResourceTypes = getAllResourceTypes(isSafari);
+
+  let headers;
+  if (mode === "remove") {
+    headers = [
+      { header: "Sec-MS", operation: "remove" },
+      { header: "Sec-MS-GPC", operation: "remove" },
+    ];
+  } else if (mode === "sec-ms") {
+    headers = [
+      { header: "Sec-MS", operation: "set", value: "1" },
+    ];
+  } else {
+    // sec-ms-gpc: replaces Sec-MS with Sec-MS-GPC for confirmed domains
+    headers = [
+      { header: "Sec-MS", operation: "remove" },
+      { header: "Sec-MS-GPC", operation: "set", value: "1" },
+    ];
+  }
+
+  let priority;
+  if (id === 2) {
+    priority = 2;
+  } else if (mode === "remove") {
+    priority = 5;
+  } else {
+    priority = 4;
+  }
+
+  let UpdateRuleOptions = {
+    addRules: [
+      {
+        id: id,
+        priority: priority,
         action: {
           type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
           requestHeaders: headers,
@@ -150,15 +214,42 @@ async function updateNavigatorGPCScripts() {
 
 export async function updateSelector(domain: string, isSafari: boolean) {
   const domainData = await getDomainData(domain);
+  const mySignalsEnabled = await getMySignalsEnabled();
 
   if (domainData) {
-    updateNavigatorGPCScripts();
-    toggleGPCHeaders(
-      100 + domainData.id,
-      domainData.domain,
-      isSafari,
-      domainData.enabled ? "enable" : "remove"
-    );
+    if (mySignalsEnabled) {
+      if (domainData.enabled) {
+        await chrome.declarativeNetRequest.updateDynamicRules({
+          removeRuleIds: [300 + domainData.id],
+        });
+        if (domainData.msConfirmed) {
+          await toggleMSHeaders(
+            200 + domainData.id,
+            getRegDomain(domainData.domain),
+            isSafari,
+            "sec-ms-gpc"
+          );
+        }
+      } else {
+        await chrome.declarativeNetRequest.updateDynamicRules({
+          removeRuleIds: [200 + domainData.id],
+        });
+        await toggleMSHeaders(
+          300 + domainData.id,
+          getRegDomain(domainData.domain),
+          isSafari,
+          "remove"
+        );
+      }
+    } else {
+      updateNavigatorGPCScripts();
+      toggleGPCHeaders(
+        100 + domainData.id,
+        domainData.domain,
+        isSafari,
+        domainData.enabled ? "enable" : "remove"
+      );
+    }
   }
 }
 
@@ -202,6 +293,104 @@ async function unregisterRules(isSafari: boolean) {
   }
 }
 
+async function registerMySignalsRules(isSafari: boolean) {
+  try {
+    const oldRuleIds = (
+      await chrome.declarativeNetRequest.getDynamicRules()
+    ).map((rule) => rule.id);
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: oldRuleIds,
+    });
+
+    await chrome.declarativeNetRequest.updateEnabledRulesets({
+      disableRulesetIds: ["universal_GPC"],
+    });
+
+    const scripts = await chrome.scripting.getRegisteredContentScripts();
+    const scriptIds = scripts.map((s) => s.id);
+    if (scriptIds.length) {
+      await chrome.scripting.unregisterContentScripts({ ids: scriptIds });
+    }
+
+    await toggleMSHeaders(2, "*", isSafari, "sec-ms");
+
+    const domains = await getDomains();
+    for (const domainData of domains) {
+      if (domainData.msConfirmed && domainData.enabled) {
+        await toggleMSHeaders(
+          200 + domainData.id,
+          getRegDomain(domainData.domain),
+          isSafari,
+          "sec-ms-gpc"
+        );
+      }
+      if (!domainData.enabled) {
+        await toggleMSHeaders(
+          300 + domainData.id,
+          getRegDomain(domainData.domain),
+          isSafari,
+          "remove"
+        );
+      }
+    }
+  } catch (error) {
+    console.warn(`Failed to register MySignals rules: ${error}`);
+  }
+}
+
+async function unregisterMySignalsRules(isSafari: boolean) {
+  try {
+    const oldRuleIds = (
+      await chrome.declarativeNetRequest.getDynamicRules()
+    ).map((rule) => rule.id);
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: oldRuleIds,
+    });
+
+    await chrome.declarativeNetRequest.updateEnabledRulesets({
+      enableRulesetIds: ["universal_GPC"],
+    });
+
+    await registerRules(isSafari);
+  } catch (error) {
+    console.warn(`Failed to unregister MySignals rules: ${error}`);
+  }
+}
+
+export async function switchMySignalsMode(isSafari: boolean) {
+  const mySignalsEnabled = await getMySignalsEnabled();
+  const extensionEnabled = await checkEnabledExtension();
+
+  if (!extensionEnabled) {
+    return;
+  }
+
+  if (mySignalsEnabled) {
+    await registerMySignalsRules(isSafari);
+  } else {
+    await unregisterMySignalsRules(isSafari);
+  }
+}
+
+export async function handleProbeResult(
+  domain: string,
+  confirmed: boolean,
+  isSafari: boolean
+) {
+  if (confirmed) {
+    await setDomainMsConfirmed(domain, true);
+    const domainData = await getDomainData(domain);
+    if (domainData && domainData.enabled) {
+      await toggleMSHeaders(
+        200 + domainData.id,
+        getRegDomain(domainData.domain),
+        isSafari,
+        "sec-ms-gpc"
+      );
+    }
+  }
+}
+
 export async function checkEnabledExtension() {
   const extensionData = await getDomainData("meeExtension");
   return !extensionData || extensionData.enabled;
@@ -209,11 +398,21 @@ export async function checkEnabledExtension() {
 
 export async function changeExtensionEnabled(isSafari: boolean) {
   const enabledExtension = await checkEnabledExtension();
+  const mySignalsEnabled = await getMySignalsEnabled();
 
   if (enabledExtension) {
-    await registerRules(isSafari);
+    if (mySignalsEnabled) {
+      await registerMySignalsRules(isSafari);
+    } else {
+      await registerRules(isSafari);
+    }
   } else {
     await unregisterRules(isSafari);
+    if (mySignalsEnabled) {
+      await chrome.declarativeNetRequest.updateEnabledRulesets({
+        disableRulesetIds: ["universal_GPC"],
+      });
+    }
   }
 }
 
@@ -229,4 +428,8 @@ export {
   getCurrentParsedDomain,
   addUserInfo,
   getUserInfo,
+  getMySignalsEnabled,
+  setMySignalsEnabled,
+  setDomainMsConfirmed,
+  getMsConfirmedDomains,
 };

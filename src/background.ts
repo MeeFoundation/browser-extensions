@@ -8,6 +8,9 @@ import {
   updateSelector,
   getUserInfo,
   addUserInfo,
+  getMySignalsEnabled,
+  switchMySignalsMode,
+  handleProbeResult,
 } from "mee-extension-lib";
 
 import config from "./config";
@@ -98,8 +101,26 @@ async function onCheckEnabledMessageHandled(
   sendResponse({ enabled });
 }
 
+async function probeMySignals(domain: string): Promise<boolean> {
+  try {
+    const response = await fetch(`https://${domain}/`, {
+      method: "HEAD",
+      redirect: "manual",
+      signal: AbortSignal.timeout(5000),
+    });
+    return response.status === 200;
+  } catch {
+    return false;
+  }
+}
+
 chrome.runtime.onInstalled.addListener(async function () {
-  await changeExtensionEnabled(import.meta.env.VITE_BROWSER === "safari");
+  const mySignalsOn = await getMySignalsEnabled();
+  if (mySignalsOn) {
+    await switchMySignalsMode(import.meta.env.VITE_BROWSER === "safari");
+  } else {
+    await changeExtensionEnabled(import.meta.env.VITE_BROWSER === "safari");
+  }
 });
 
 interface Message {
@@ -133,9 +154,38 @@ chrome.runtime.onMessage.addListener(
         }
         return true;
       }
+      case "TOGGLE_MYSIGNALS": {
+        switchMySignalsMode(import.meta.env.VITE_BROWSER === "safari");
+        return true;
+      }
       case "CONTENT_LOADED": {
         onCheckEnabledMessageHandled(message, sendResponse);
         onInitPage();
+
+        // MySignals probe logic
+        if (message.url) {
+          const domain = message.url;
+          (async () => {
+            try {
+              const mySignalsOn = await getMySignalsEnabled();
+              if (mySignalsOn) {
+                const domainData = await getDomainData(domain);
+                if (domainData && domainData.enabled && !domainData.msConfirmed) {
+                  const confirmed = await probeMySignals(domain);
+                  if (confirmed) {
+                    await handleProbeResult(
+                      domain,
+                      true,
+                      import.meta.env.VITE_BROWSER === "safari"
+                    );
+                  }
+                }
+              }
+            } catch (error) {
+              console.warn(`MySignals probe error for ${domain}:`, error);
+            }
+          })();
+        }
         return true;
       }
       default: {

@@ -2,6 +2,8 @@ import {
   getDomainData,
   changeEnableDomain,
   getCurrentParsedDomain,
+  getMySignalsEnabled,
+  setMySignalsEnabled,
 } from "mee-extension-lib";
 
 async function checkDomain(parsedDomain: string) {
@@ -72,6 +74,17 @@ async function checkEnabledExtension() {
   }
 
   changeDisableSlider("slider-domain-switch", !enabledExtension);
+  changeDisableSlider("slider-mysignals-switch", !enabledExtension);
+}
+
+async function checkMySignalsState() {
+  const mySignalsEnabled = await getMySignalsEnabled();
+  const sliderMySignals = document.getElementById(
+    "slider-mysignals"
+  ) as HTMLInputElement | null;
+  if (sliderMySignals) {
+    sliderMySignals.checked = mySignalsEnabled;
+  }
 }
 
 chrome.runtime.onMessage.addListener(async function (message, _, __) {
@@ -97,9 +110,11 @@ document.addEventListener("DOMContentLoaded", async (_) => {
     checkDomain(parsedDomain);
     checkAlert(parsedDomain);
     checkEnabledExtension();
+    checkMySignalsState();
   } else {
     changeDisableSlider("slider-extension-switch", true);
     changeDisableSlider("slider-domain-switch", true);
+    changeDisableSlider("slider-mysignals-switch", true);
   }
 });
 
@@ -136,4 +151,16 @@ document
     }
 
     await checkEnabledExtension();
+    await checkMySignalsState();
+  });
+
+document
+  .getElementById("slider-mysignals")
+  ?.addEventListener("click", async (_) => {
+    const currentState = await getMySignalsEnabled();
+    await setMySignalsEnabled(!currentState);
+    chrome.runtime.sendMessage({
+      msg: "TOGGLE_MYSIGNALS",
+    });
+    await checkMySignalsState();
   });
