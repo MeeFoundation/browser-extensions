@@ -108,7 +108,14 @@ async function probeMySignals(domain: string): Promise<boolean> {
       redirect: "manual",
       signal: AbortSignal.timeout(5000),
     });
-    return response.status === 200;
+
+    const criticalMs = response.headers.get("Critical-MS");
+    const acceptedNs = response.headers.get("Accepted-NS");
+
+    return (
+      (criticalMs !== null && criticalMs.trim().toUpperCase() === "GPC") ||
+      (acceptedNs !== null && acceptedNs.trim().toUpperCase() === "GPC")
+    );
   } catch {
     return false;
   }
