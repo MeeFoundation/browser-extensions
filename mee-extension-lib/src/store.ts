@@ -1,5 +1,5 @@
 export function openDB(): IDBOpenDBRequest {
-  return indexedDB.open("MeeWebExtensionDB", 6);
+  return indexedDB.open("MeeWebExtensionDB", 7);
 }
 
 export function initDB() {
@@ -7,17 +7,23 @@ export function initDB() {
 
   request.onupgradeneeded = function (event: IDBVersionChangeEvent) {
     const db = (event.target as IDBOpenDBRequest).result;
-    const objectStore = db.createObjectStore("domains", {
-      keyPath: "id",
-      autoIncrement: true,
-    });
-    objectStore.createIndex("wellknown", "wellknown", { unique: false });
-    objectStore.createIndex("enabled", "enabled", { unique: false });
-    objectStore.createIndex("domain", "domain", { unique: true });
-    const userStore = db.createObjectStore("user", { keyPath: "id" });
-    userStore.createIndex("id", "id", { unique: true });
-    userStore.createIndex("user_uid", "user_uid", { unique: true });
-    db.close();
+    if (!db.objectStoreNames.contains("domains")) {
+      const objectStore = db.createObjectStore("domains", {
+        keyPath: "id",
+        autoIncrement: true,
+      });
+      objectStore.createIndex("wellknown", "wellknown", { unique: false });
+      objectStore.createIndex("enabled", "enabled", { unique: false });
+      objectStore.createIndex("domain", "domain", { unique: true });
+    }
+    if (!db.objectStoreNames.contains("user")) {
+      const userStore = db.createObjectStore("user", { keyPath: "id" });
+      userStore.createIndex("id", "id", { unique: true });
+      userStore.createIndex("user_uid", "user_uid", { unique: true });
+    }
+    if (!db.objectStoreNames.contains("settings")) {
+      db.createObjectStore("settings", { keyPath: "key" });
+    }
   };
 }
 
@@ -76,6 +82,7 @@ interface AddDBRow {
   domain: string;
   wellknown: boolean;
   enabled: boolean;
+  msConfirmed?: boolean;
   id?: number;
 }
 interface DBRow extends AddDBRow {
@@ -106,7 +113,7 @@ export function addRowToDB(data: AddDBRow) {
           enabled: old_data ? old_data.enabled : data.enabled,
           wellknown: data.wellknown,
         }
-      : data;
+      : { ...data, msConfirmed: data.msConfirmed ?? false };
 
     const requestUpdate = objectStore.put(new_data);
     requestUpdate.onerror = (event) => {
@@ -218,6 +225,7 @@ export async function changeEnableDomain(
             domain: parsedDomain,
             wellknown: false,
             enabled: false,
+            msConfirmed: false,
           };
       const requestUpdate = objectStore.put(new_data);
       requestUpdate.onerror = () => {
@@ -230,4 +238,99 @@ export async function changeEnableDomain(
       };
     };
   });
+}
+
+export async function getMySignalsEnabled(): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const request = openDB();
+    request.onerror = () => {
+      reject("Error in openDB");
+    };
+    request.onsuccess = function (event) {
+      const db = (event.target as IDBOpenDBRequest).result;
+      const transaction = db.transaction(["settings"], "readonly");
+      const objectStore = transaction.objectStore("settings");
+      const getRequest = objectStore.get("mySignalsEnabled");
+
+      getRequest.onsuccess = (event: any) => {
+        const data = event.target.result;
+        resolve(data ? data.value : false);
+      };
+      getRequest.onerror = () => {
+        resolve(false);
+      };
+      db.close();
+    };
+  });
+}
+
+export async function setMySignalsEnabled(enabled: boolean): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = openDB();
+    request.onerror = () => {
+      reject("Error in openDB");
+    };
+    request.onsuccess = function (event) {
+      const db = (event.target as IDBOpenDBRequest).result;
+      const transaction = db.transaction(["settings"], "readwrite");
+      const objectStore = transaction.objectStore("settings");
+      const putRequest = objectStore.put({ key: "mySignalsEnabled", value: enabled });
+
+      putRequest.onsuccess = () => {
+        db.close();
+        resolve();
+      };
+      putRequest.onerror = () => {
+        db.close();
+        reject("Error saving MySignals setting");
+      };
+    };
+  });
+}
+
+export async function setDomainMsConfirmed(
+  domain: string,
+  confirmed: boolean
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = openDB();
+    request.onerror = () => {
+      reject("Error in openDB");
+    };
+    request.onsuccess = async function (event) {
+      const db = (event.target as IDBOpenDBRequest).result;
+      const transaction = db.transaction(["domains"], "readwrite");
+      const objectStore = transaction.objectStore("domains");
+      const request_get_all = objectStore.getAll();
+
+      request_get_all.onsuccess = (event: any) => {
+        const records: DBRow[] = event.target.result;
+        const domainRecord = records.find((r) => r.domain === domain);
+        if (domainRecord) {
+          const updated = { ...domainRecord, msConfirmed: confirmed };
+          const putRequest = objectStore.put(updated);
+          putRequest.onsuccess = () => {
+            db.close();
+            resolve();
+          };
+          putRequest.onerror = () => {
+            db.close();
+            reject("Error updating msConfirmed");
+          };
+        } else {
+          db.close();
+          resolve();
+        }
+      };
+      request_get_all.onerror = () => {
+        db.close();
+        reject("Error reading domains");
+      };
+    };
+  });
+}
+
+export async function getMsConfirmedDomains(): Promise<DBRow[]> {
+  const domains = await getDomains();
+  return domains.filter((domain) => domain.msConfirmed);
 }
