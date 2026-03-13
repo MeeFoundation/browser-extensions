@@ -165,6 +165,66 @@ input:checked + .slider:before {
   color: #3b5b63;
 }
 
+.vary-badge-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.vary-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: default;
+  user-select: none;
+}
+
+.vary-tooltip {
+  display: none;
+  position: absolute;
+  right: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(30, 41, 59, 0.5);
+  color: #f8fafc;
+  font-family: "Public Sans";
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 6px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 300px;
+}
+
+.vary-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  transform: translateY(-50%);
+  border-width: 6px 0 6px 6px;
+  border-style: solid;
+  border-color: transparent transparent transparent rgba(30, 41, 59, 0.5);
+}
+
+
+.vary-badge-wrapper:hover .vary-tooltip {
+  display: flex;
+}
+
 @font-face {
   font-family: Public Sans;
   font-style: normal;

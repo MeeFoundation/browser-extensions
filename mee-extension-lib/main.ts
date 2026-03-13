@@ -10,6 +10,7 @@ import {
   getMySignalsEnabled,
   setMySignalsEnabled,
   setDomainMsConfirmed,
+  setDomainVaryHeaders,
   getMsConfirmedDomains,
 } from "./src/store";
 import { getDomainFromUrl, getRegDomain, getRegDomains } from "./src/string";
@@ -431,5 +432,6 @@ export {
   getMySignalsEnabled,
   setMySignalsEnabled,
   setDomainMsConfirmed,
+  setDomainVaryHeaders,
   getMsConfirmedDomains,
 };

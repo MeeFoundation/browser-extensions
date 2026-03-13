@@ -11,6 +11,7 @@ import {
   getMySignalsEnabled,
   switchMySignalsMode,
   handleProbeResult,
+  setDomainVaryHeaders,
 } from "mee-extension-lib";
 
 import config from "./config";
@@ -41,11 +42,12 @@ function afterDownloadWellknown(
       enabled: true,
     });
 
-    chrome.runtime.onMessage.addListener((message) => {
+    chrome.runtime.onMessage.addListener(async (message) => {
       if (message.msg === "POPUP_LOADED") {
+        const domainData = await getDomainData(domain);
         chrome.runtime.sendMessage({
           msg: "SEND_WELLKNOWN_TO_POPUP",
-          data: { domain, wellknownData },
+          data: { domain, wellknownData, varyHeaders: domainData?.varyHeaders ?? [] },
         });
       }
     });
@@ -101,7 +103,12 @@ async function onCheckEnabledMessageHandled(
   sendResponse({ enabled });
 }
 
-async function probeMySignals(domain: string): Promise<boolean> {
+interface ProbeResult {
+  confirmed: boolean;
+  varyHeaders: string[];
+}
+
+async function probeMySignals(domain: string): Promise<ProbeResult> {
   try {
     const response = await fetch(`https://${domain}/`, {
       method: "HEAD",
@@ -110,14 +117,19 @@ async function probeMySignals(domain: string): Promise<boolean> {
     });
 
     const criticalMs = response.headers.get("Critical-MS");
-    const acceptedNs = response.headers.get("Accepted-NS");
-
-    return (
+    const acceptedMs = response.headers.get("Accepted-MS");
+    const confirmed =
       (criticalMs !== null && criticalMs.trim().toUpperCase() === "GPC") ||
-      (acceptedNs !== null && acceptedNs.trim().toUpperCase() === "GPC")
-    );
+      (acceptedMs !== null && acceptedMs.trim().toUpperCase() === "GPC");
+
+    const varyRaw = response.headers.get("Vary");
+    const varyHeaders = varyRaw
+      ? varyRaw.split(",").map((v) => v.trim()).filter(Boolean)
+      : [];
+
+    return { confirmed, varyHeaders };
   } catch {
-    return false;
+    return { confirmed: false, varyHeaders: [] };
   }
 }
 
@@ -178,7 +190,10 @@ chrome.runtime.onMessage.addListener(
               if (mySignalsOn) {
                 const domainData = await getDomainData(domain);
                 if (domainData && domainData.enabled && !domainData.msConfirmed) {
-                  const confirmed = await probeMySignals(domain);
+                  const { confirmed, varyHeaders } = await probeMySignals(domain);
+                  if (varyHeaders.length > 0) {
+                    await setDomainVaryHeaders(domain, varyHeaders);
+                  }
                   if (confirmed) {
                     await handleProbeResult(
                       domain,

@@ -87,14 +87,32 @@ async function checkMySignalsState() {
   }
 }
 
+async function updateVaryStatus(varyHeaders: string[]) {
+  const mySignalsOn = await getMySignalsEnabled();
+  const varyRow = document.getElementById("vary-status-row");
+  const tooltip = document.getElementById("vary-tooltip");
+
+  const shouldShow = mySignalsOn && varyHeaders.length > 0;
+  if (varyRow) varyRow.style.display = shouldShow ? "flex" : "none";
+  if (tooltip) {
+    tooltip.replaceChildren(); // or tooltip.textContent = "";
+    varyHeaders.forEach((header) => {
+      const span = document.createElement("span");
+      span.textContent = header; // textContent automatically escapes all HTML characters
+      tooltip.appendChild(span);
+    });
+  }
+}
+
 chrome.runtime.onMessage.addListener(async function (message, _, __) {
   if (message.msg === "SEND_WELLKNOWN_TO_POPUP") {
     const parsedDomain = await getCurrentParsedDomain();
-    let { domain } = message.data;
+    let { domain, varyHeaders } = message.data;
 
     if (parsedDomain && domain === parsedDomain) {
       checkDomain(parsedDomain);
       checkAlert(parsedDomain);
+      updateVaryStatus(varyHeaders ?? []);
     }
   }
 });
@@ -111,6 +129,9 @@ document.addEventListener("DOMContentLoaded", async (_) => {
     checkAlert(parsedDomain);
     checkEnabledExtension();
     checkMySignalsState();
+    getDomainData(parsedDomain).then((data) =>
+      updateVaryStatus(data?.varyHeaders ?? [])
+    );
   } else {
     changeDisableSlider("slider-extension-switch", true);
     changeDisableSlider("slider-domain-switch", true);
@@ -163,4 +184,9 @@ document
       msg: "TOGGLE_MYSIGNALS",
     });
     await checkMySignalsState();
+    const parsedDomain = await getCurrentParsedDomain();
+    if (parsedDomain) {
+      const domainData = await getDomainData(parsedDomain);
+      await updateVaryStatus(domainData?.varyHeaders ?? []);
+    }
   });
