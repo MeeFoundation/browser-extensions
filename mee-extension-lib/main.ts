@@ -11,6 +11,7 @@ import {
   setMySignalsEnabled,
   setDomainMsConfirmed,
   setDomainVaryHeaders,
+  setDomainHighEntropyHints,
   getMsConfirmedDomains,
 } from "./src/store";
 import { getDomainFromUrl, getRegDomain, getRegDomains } from "./src/string";
@@ -433,5 +434,6 @@ export {
   setMySignalsEnabled,
   setDomainMsConfirmed,
   setDomainVaryHeaders,
+  setDomainHighEntropyHints,
   getMsConfirmedDomains,
 };

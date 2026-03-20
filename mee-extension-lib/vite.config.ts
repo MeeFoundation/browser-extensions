@@ -23,7 +23,7 @@ export default defineConfig({
     },
   },
   plugins: [
-    dts(),
+    //dts(),
     viteStaticCopy({
       targets: copy_targets,
     }),

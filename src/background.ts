@@ -12,6 +12,7 @@ import {
   switchMySignalsMode,
   handleProbeResult,
   setDomainVaryHeaders,
+  setDomainHighEntropyHints,
 } from "mee-extension-lib";
 
 import config from "./config";
@@ -47,7 +48,12 @@ function afterDownloadWellknown(
         const domainData = await getDomainData(domain);
         chrome.runtime.sendMessage({
           msg: "SEND_WELLKNOWN_TO_POPUP",
-          data: { domain, wellknownData, varyHeaders: domainData?.varyHeaders ?? [] },
+          data: {
+            domain,
+            wellknownData,
+            varyHeaders: domainData?.varyHeaders ?? [],
+            highEntropyHints: domainData?.highEntropyHints ?? [],
+          },
         });
       }
     });
@@ -103,9 +109,22 @@ async function onCheckEnabledMessageHandled(
   sendResponse({ enabled });
 }
 
+const HIGH_ENTROPY_HINTS = [
+  "Sec-CH-UA-Platform",
+  "Sec-CH-UA-Platform-Version",
+  "Sec-CH-UA-Arch",
+  "Sec-CH-UA-Model",
+  "Sec-CH-UA-Full-Version-List",
+  "Device-Memory",
+  "Downlink",
+  "RTT",
+  "ECT",
+];
+
 interface ProbeResult {
   confirmed: boolean;
   varyHeaders: string[];
+  highEntropyHints: string[];
 }
 
 async function probeMySignals(domain: string): Promise<ProbeResult> {
@@ -127,9 +146,19 @@ async function probeMySignals(domain: string): Promise<ProbeResult> {
       ? varyRaw.split(",").map((v) => v.trim()).filter(Boolean)
       : [];
 
-    return { confirmed, varyHeaders };
+    const acceptChRaw = response.headers.get("Accept-CH");
+    const highEntropyHints = acceptChRaw
+      ? acceptChRaw
+          .split(",")
+          .map((v) => v.trim())
+          .filter((hint) =>
+            HIGH_ENTROPY_HINTS.some((h) => h.toLowerCase() === hint.toLowerCase())
+          )
+      : [];
+
+    return { confirmed, varyHeaders, highEntropyHints };
   } catch {
-    return { confirmed: false, varyHeaders: [] };
+    return { confirmed: false, varyHeaders: [], highEntropyHints: [] };
   }
 }
 
@@ -190,9 +219,12 @@ chrome.runtime.onMessage.addListener(
               if (mySignalsOn) {
                 const domainData = await getDomainData(domain);
                 if (domainData && domainData.enabled && !domainData.msConfirmed) {
-                  const { confirmed, varyHeaders } = await probeMySignals(domain);
+                  const { confirmed, varyHeaders, highEntropyHints } = await probeMySignals(domain);
                   if (varyHeaders.length > 0) {
                     await setDomainVaryHeaders(domain, varyHeaders);
+                  }
+                  if (highEntropyHints.length > 0) {
+                    await setDomainHighEntropyHints(domain, highEntropyHints);
                   }
                   if (confirmed) {
                     await handleProbeResult(

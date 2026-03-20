@@ -1,5 +1,5 @@
 export function openDB(): IDBOpenDBRequest {
-  return indexedDB.open("MeeWebExtensionDB", 8);
+  return indexedDB.open("MeeWebExtensionDB", 9);
 }
 
 export function initDB() {
@@ -24,15 +24,24 @@ export function initDB() {
     if (!db.objectStoreNames.contains("settings")) {
       db.createObjectStore("settings", { keyPath: "key" });
     }
-    if (event.oldVersion < 8 && db.objectStoreNames.contains("domains")) {
+    if (event.oldVersion < 9 && db.objectStoreNames.contains("domains")) {
       const transaction = (event.target as IDBOpenDBRequest).transaction!;
       const store = transaction.objectStore("domains");
       store.openCursor().onsuccess = (e: any) => {
         const cursor: IDBCursorWithValue = e.target.result;
         if (cursor) {
           const row = cursor.value;
+          let needsUpdate = false;
           if (!("varyHeaders" in row)) {
-            cursor.update({ ...row, varyHeaders: [] });
+            row.varyHeaders = [];
+            needsUpdate = true;
+          }
+          if (!("highEntropyHints" in row)) {
+            row.highEntropyHints = [];
+            needsUpdate = true;
+          }
+          if (needsUpdate) {
+            cursor.update(row);
           }
           cursor.continue();
         }
@@ -98,6 +107,7 @@ interface AddDBRow {
   enabled: boolean;
   msConfirmed?: boolean;
   varyHeaders?: string[];
+  highEntropyHints?: string[];
   id?: number;
 }
 interface DBRow extends AddDBRow {
@@ -128,8 +138,9 @@ export function addRowToDB(data: AddDBRow) {
           enabled: old_data ? old_data.enabled : data.enabled,
           wellknown: data.wellknown,
           varyHeaders: data.varyHeaders ?? old_data.varyHeaders ?? [],
+          highEntropyHints: data.highEntropyHints ?? old_data.highEntropyHints ?? [],
         }
-      : { ...data, msConfirmed: data.msConfirmed ?? false, varyHeaders: data.varyHeaders ?? [] };
+      : { ...data, msConfirmed: data.msConfirmed ?? false, varyHeaders: data.varyHeaders ?? [], highEntropyHints: data.highEntropyHints ?? [] };
 
     const requestUpdate = objectStore.put(new_data);
     requestUpdate.onerror = (event) => {
@@ -374,6 +385,48 @@ export async function setDomainVaryHeaders(
           putRequest.onerror = () => {
             db.close();
             reject("Error updating varyHeaders");
+          };
+        } else {
+          db.close();
+          resolve();
+        }
+      };
+      request_get_all.onerror = () => {
+        db.close();
+        reject("Error reading domains");
+      };
+    };
+  });
+}
+
+export async function setDomainHighEntropyHints(
+  domain: string,
+  hints: string[]
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = openDB();
+    request.onerror = () => {
+      reject("Error in openDB");
+    };
+    request.onsuccess = async function (event) {
+      const db = (event.target as IDBOpenDBRequest).result;
+      const transaction = db.transaction(["domains"], "readwrite");
+      const objectStore = transaction.objectStore("domains");
+      const request_get_all = objectStore.getAll();
+
+      request_get_all.onsuccess = (event: any) => {
+        const records: DBRow[] = event.target.result;
+        const domainRecord = records.find((r) => r.domain === domain);
+        if (domainRecord) {
+          const updated = { ...domainRecord, highEntropyHints: hints };
+          const putRequest = objectStore.put(updated);
+          putRequest.onsuccess = () => {
+            db.close();
+            resolve();
+          };
+          putRequest.onerror = () => {
+            db.close();
+            reject("Error updating highEntropyHints");
           };
         } else {
           db.close();
