@@ -41,3 +41,9 @@
 ```sh
 pnpm run test:chrome
 ```
+
+### For unit testing 
+
+```sh
+pnpm run test:unit
+```
