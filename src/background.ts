@@ -138,8 +138,8 @@ async function probeMySignals(domain: string): Promise<ProbeResult> {
     const criticalMs = response.headers.get("Critical-MS");
     const acceptedMs = response.headers.get("Accepted-MS");
     const confirmed =
-      (criticalMs !== null && criticalMs.trim().toUpperCase() === "GPC") ||
-      (acceptedMs !== null && acceptedMs.trim().toUpperCase() === "GPC");
+      (criticalMs !== null && criticalMs.trim().toUpperCase().split(";").includes("GPC")) ||
+      (acceptedMs !== null && acceptedMs.trim().toUpperCase().split(";").includes("GPC"));
 
     const varyRaw = response.headers.get("Vary");
     const varyHeaders = varyRaw
