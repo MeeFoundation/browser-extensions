@@ -8,8 +8,9 @@
     "build-lib": "cd mee-extension-lib && pnpm build",
     "build": "pnpm build-lib && run-p build:*",
     "build:chrome": "VITE_BROWSER=chrome vite build && VITE_BROWSER=chrome APP_FILE=content vite build && VITE_BROWSER=chrome APP_FILE=popup vite build && VITE_BROWSER=chrome APP_FILE=options vite build",
-    "test": "run-p test:*",
-    "test:chrome": "web-ext run --source-dir ./dist/chrome --target=chromium --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me"
+    "test": "pnpm test:chrome",
+    "test:chrome": "web-ext run --source-dir ./dist/chrome --target=chromium --start-url https://globalprivacycontrol.org --start-url https://global-privacy-control.glitch.me",
+    "test:unit": "vitest run"
   },
   "author": "",
   "license": "ISC",
@@ -23,6 +24,7 @@
     "typescript": "^5.4.5",
     "vite": "^4.3.3",
     "vite-plugin-static-copy": "^0.14.0",
+    "vitest": "^1.6.0",
     "web-ext": "^7.8.0"
   },
   "dependencies": {
