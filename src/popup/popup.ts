@@ -87,14 +87,50 @@ async function checkMySignalsState() {
   }
 }
 
+async function updateVaryStatus(varyHeaders: string[]) {
+  const mySignalsOn = await getMySignalsEnabled();
+  const varyRow = document.getElementById("vary-status-row");
+  const tooltip = document.getElementById("vary-tooltip");
+
+  const shouldShow = mySignalsOn && varyHeaders.length > 0;
+  if (varyRow) varyRow.style.display = shouldShow ? "flex" : "none";
+  if (tooltip) {
+    tooltip.replaceChildren();
+    varyHeaders.forEach((header) => {
+      const span = document.createElement("span");
+      span.textContent = header;
+      tooltip.appendChild(span);
+    });
+  }
+}
+
+async function updateHintsStatus(highEntropyHints: string[]) {
+  const mySignalsOn = await getMySignalsEnabled();
+  const hintsRow = document.getElementById("hints-status-row");
+  const tooltip = document.getElementById("hints-tooltip");
+
+  const shouldShow = mySignalsOn && highEntropyHints.length > 0;
+  if (hintsRow) hintsRow.style.display = shouldShow ? "flex" : "none";
+  if (tooltip) {
+    tooltip.replaceChildren();
+    highEntropyHints.forEach((hint) => {
+      const span = document.createElement("span");
+      span.textContent = hint;
+      tooltip.appendChild(span);
+    });
+  }
+}
+
 chrome.runtime.onMessage.addListener(async function (message, _, __) {
   if (message.msg === "SEND_WELLKNOWN_TO_POPUP") {
     const parsedDomain = await getCurrentParsedDomain();
-    let { domain } = message.data;
+    let { domain, varyHeaders, highEntropyHints } = message.data;
 
     if (parsedDomain && domain === parsedDomain) {
       checkDomain(parsedDomain);
       checkAlert(parsedDomain);
+      updateVaryStatus(varyHeaders ?? []);
+      updateHintsStatus(highEntropyHints ?? []);
     }
   }
 });
@@ -111,6 +147,10 @@ document.addEventListener("DOMContentLoaded", async (_) => {
     checkAlert(parsedDomain);
     checkEnabledExtension();
     checkMySignalsState();
+    getDomainData(parsedDomain).then((data) => {
+      updateVaryStatus(data?.varyHeaders ?? []);
+      updateHintsStatus(data?.highEntropyHints ?? []);
+    });
   } else {
     changeDisableSlider("slider-extension-switch", true);
     changeDisableSlider("slider-domain-switch", true);
@@ -163,4 +203,10 @@ document
       msg: "TOGGLE_MYSIGNALS",
     });
     await checkMySignalsState();
+    const parsedDomain = await getCurrentParsedDomain();
+    if (parsedDomain) {
+      const domainData = await getDomainData(parsedDomain);
+      await updateVaryStatus(domainData?.varyHeaders ?? []);
+      await updateHintsStatus(domainData?.highEntropyHints ?? []);
+    }
   });
